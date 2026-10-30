@@ -32,3 +32,8 @@ Esta guía la sigue Claude en cada tarea programada de publicación.
 3. Crear borrador en Metricool (draft: true) con media = https://raw.githubusercontent.com/sentineltradinghq/sentinel-post/main/<ruta>
 4. Mostrar al usuario la imagen y el texto y esperar "aprobado" o cambios.
 5. Con "aprobado": pasar a draft false a la hora del horario (o 5 min después si ya pasó).
+6. Historia: con la misma aprobación, crear la historia para Instagram y Facebook:
+   `python tools/historia.py posts/.../imagen.jpg historias/AAAA-MM/AAAA-MM-DD_am|pm_historia.jpg "NUEVO POST"`
+   (si es carrusel, usar la portada). Commit y push, y programar en Metricool 5 minutos después del post:
+   providers instagram + facebook, instagramData {"type":"STORY"}, facebookData {"type":"STORY"}, text vacío, sin primer comentario.
+   No usar emojis en el texto de la imagen (la fuente no los muestra).
