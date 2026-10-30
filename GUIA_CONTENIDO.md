@@ -27,15 +27,24 @@ Esta guía la sigue Claude en cada tarea programada de publicación.
 7. Límite de Instagram: el texto del post debe tener MENOS de 2.000 caracteres (Instagram rechaza más de 2.200 y el post falla). Si el texto es más largo, crear un post aparte solo para Instagram con una versión resumida.
 8. Carruseles: hasta 10 imágenes JPG en el mismo post (media con varias URLs). Instagram y TikTok los muestran como carrusel deslizable; Facebook como post con varias fotos.
 9. Etiquetar fuentes (sobre todo en noticias): antes de los hashtags, agregar una línea
-   "📰 Fuentes: @cuenta1 @cuenta2" con las cuentas oficiales de Instagram de los medios usados.
-   - Usar SOLO cuentas verificadas. Si el medio no está en esta lista, buscar en la web su cuenta oficial de Instagram
-     y confirmarla antes de usarla; si no se puede confirmar, escribir el nombre del medio sin @.
-   - Cuentas verificadas: CoinDesk @coindesk · Cointelegraph @cointelegraph · The New York Times @nytimes ·
-     Reuters @reuters · CNN @cnn · Al Jazeera @aljazeeraenglish · Bloomberg @bloombergbusiness ·
-     CNBC @cnbc · Yahoo Finance @yahoofinance · NBC News @nbcnews · The Block @theblock__ (verificar) ·
-     Decrypt @decryptmedia (verificar) · Binance @binance · Bybit @bybit_official (verificar)
+   "📰 Fuentes: @cuenta1 @cuenta2 @cuenta3" con las cuentas oficiales de Instagram de los medios y empresas citados.
+   - PRIORIDAD A LOS GRANDES: al investigar una noticia, buscar siempre si la cubren medios de primer nivel
+     (New York Times, Financial Times, Wall Street Journal, Bloomberg, Reuters, CNN, BBC, AP, The Economist, Forbes, CNBC)
+     y, si la cubren, citarlos y etiquetarlos primero. Lo mismo con instituciones grandes involucradas
+     (BlackRock, Fidelity, la Fed, la SEC, Coinbase, Binance, etc.).
+   - Cuidado especial con las cuentas importantes: verificar SIEMPRE que sea la cuenta oficial (verificada, la del sitio web
+     del medio). Una etiqueta equivocada a un medio grande se ve muy mal.
+   - Si una cuenta no está en esta lista o dice (verificar), buscar en la web su Instagram oficial y confirmarlo antes de usarla;
+     si no se puede confirmar, escribir el nombre sin @.
+   - Cuentas oficiales (Instagram):
+     Grandes medios: The New York Times @nytimes · Financial Times @financialtimes · Wall Street Journal @wsj ·
+     Bloomberg @bloombergbusiness · Reuters @reuters · CNN @cnn · BBC News @bbcnews · AP @apnews ·
+     The Economist @theeconomist · Forbes @forbes · CNBC @cnbc · The Washington Post @washingtonpost ·
+     Yahoo Finance @yahoofinance · NBC News @nbcnews · Al Jazeera @aljazeeraenglish
+     Cripto: CoinDesk @coindesk · Cointelegraph @cointelegraph · Decrypt @decryptmedia (verificar) · The Block @theblock__ (verificar)
+     Empresas: BlackRock @blackrock · Coinbase @coinbase · Binance @binance · Fidelity (verificar) · Bybit (verificar) · Tether (verificar)
    - En Instagram la mención queda clicable; en Facebook y TikTok puede verse como texto, igual sirve como crédito.
-   - No etiquetar personas particulares, solo medios, empresas y cuentas oficiales.
+   - No etiquetar personas particulares, solo medios, empresas, instituciones y cuentas oficiales.
 6. No repetir temas: revisar `temas_publicados.md` antes de elegir y añadir el tema nuevo al final.
 
 ## Flujo
