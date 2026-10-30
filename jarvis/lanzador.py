@@ -23,6 +23,13 @@ APPS = {
     "binance": "Binance",
     "discord": "Discord",
 }
+# Programas de Windows: nombre dicho -> comando
+SISTEMA = {
+    "cmd": "cmd", "ceemede": "cmd", "consola": "cmd", "simbolodelsistema": "cmd", "terminal": "wt",
+    "powershell": "powershell", "blocdenotas": "notepad", "notepad": "notepad",
+    "calculadora": "calc", "explorador": "explorer", "misarchivos": "explorer",
+    "administradordetareas": "taskmgr", "configuracion": "ms-settings:", "paint": "mspaint",
+}
 # Modos: varias cosas de una vez
 MODOS = {
     "trading": ["tradingview", "binance", "bybit", "discord", "grafana"],
@@ -66,8 +73,18 @@ def _buscar_app_tienda(texto: str):
     return None
 
 
+def _clave(nombre: str) -> str:
+    import unicodedata
+    t = unicodedata.normalize("NFD", nombre.lower())
+    t = "".join(c for c in t if unicodedata.category(c) != "Mn")
+    return "".join(c for c in t if c.isalnum())
+
+
 def _abrir(nombre: str) -> str:
-    clave = nombre.lower().strip().replace(" ", "")
+    clave = _clave(nombre)
+    if clave in SISTEMA:
+        subprocess.Popen(["cmd", "/c", "start", "", SISTEMA[clave]])
+        return f"Abrí {nombre}."
     if clave in WEBS:
         webbrowser.open(WEBS[clave])
         return f"Abrí {nombre} en el navegador."
@@ -79,6 +96,10 @@ def _abrir(nombre: str) -> str:
     app_id = _buscar_app_tienda(texto)
     if app_id:
         subprocess.Popen(["explorer.exe", f"shell:AppsFolder\\{app_id}"])
+        return f"Abrí {nombre}."
+    import shutil
+    if shutil.which(clave):
+        subprocess.Popen(["cmd", "/c", "start", "", clave])
         return f"Abrí {nombre}."
     return f"No encontré '{nombre}' en el PC. Revisa el nombre o agrégalo al lanzador."
 

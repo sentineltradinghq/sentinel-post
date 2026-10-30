@@ -93,7 +93,7 @@ def interpretar(texto: str):
         return ("salir", "")
     if re.search(r"que (apps|aplicaciones|programas) (puedes|sabes) abrir|lista de (apps|aplicaciones)", n):
         return ("listar", "")
-    m = re.search(r"\b(abre|abrir|abreme|abri|ejecuta|lanza|inicia)\b\s+(.*)", n)
+    m = re.search(r"\b(abre|abrir|abreme|abri|ejecuta|ejecutame|lanza|inicia|activa|activame|pon|ponme|muestrame)\b\s+(.*)", n)
     if m:
         nombre = re.sub(r"^(el|la|los|las|mi|a)\s+", "", m.group(2)).strip()
         nombre = re.sub(r"^(app|aplicacion|programa|pagina|web)\s+(de\s+)?", "", nombre).strip()
