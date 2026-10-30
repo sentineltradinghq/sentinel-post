@@ -1,9 +1,14 @@
 """Lanzador Sentinel: servidor MCP para que OpenJarvis abra apps, webs y modos."""
 import json, os, subprocess, webbrowser
 from pathlib import Path
-from mcp.server.fastmcp import FastMCP
-
-mcp = FastMCP("lanzador")
+try:  # el servidor MCP solo hace falta para OpenJarvis; la voz usa las funciones directo
+    from mcp.server.fastmcp import FastMCP
+    mcp = FastMCP("lanzador")
+    _tool = mcp.tool
+except ImportError:
+    mcp = None
+    def _tool():
+        return lambda f: f
 
 # Páginas web: nombre -> URL
 WEBS = {
@@ -78,7 +83,7 @@ def _abrir(nombre: str) -> str:
     return f"No encontré '{nombre}' en el PC. Revisa el nombre o agrégalo al lanzador."
 
 
-@mcp.tool()
+@_tool()
 def abrir_app(nombre: str) -> str:
     """Abre una aplicación del PC o una página web por su nombre.
     Ejemplos: TradingView, Binance, Bybit, Discord, Grafana, Metricool, Whop,
@@ -86,7 +91,7 @@ def abrir_app(nombre: str) -> str:
     return _abrir(nombre)
 
 
-@mcp.tool()
+@_tool()
 def activar_modo(modo: str) -> str:
     """Abre varias apps de una vez. Modos disponibles: trading
     (TradingView, Binance, Bybit, Discord y Grafana)."""
@@ -96,7 +101,7 @@ def activar_modo(modo: str) -> str:
     return "\n".join(_abrir(x) for x in MODOS[clave])
 
 
-@mcp.tool()
+@_tool()
 def listar_opciones() -> str:
     """Lista las apps, páginas y modos que el lanzador conoce."""
     return (f"Apps: {', '.join(APPS)}\nWebs: {', '.join(WEBS)}\n"
@@ -104,4 +109,6 @@ def listar_opciones() -> str:
 
 
 if __name__ == "__main__":
+    if mcp is None:
+        raise SystemExit("Falta el paquete mcp<2")
     mcp.run()

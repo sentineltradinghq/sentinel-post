@@ -104,6 +104,15 @@ def preguntar_ia(texto: str) -> str:
 
 def ejecutar(texto: str) -> bool:
     """Ejecuta la orden. Devuelve False si hay que cerrar el asistente."""
+    try:
+        return _ejecutar(texto)
+    except Exception as e:
+        log.exception("Error ejecutando la orden")
+        hablar("Tuve un error con esa orden.")
+        return True
+
+
+def _ejecutar(texto: str) -> bool:
     import lanzador
     accion, arg = interpretar(texto)
     log.info("Orden: %r -> %s %r", texto, accion, arg)

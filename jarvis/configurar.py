@@ -14,7 +14,7 @@ if cfg.exists():
 
 uv = shutil.which("uv") or "uv"
 servidor = {"name": "lanzador", "command": uv,
-            "args": ["run", "--with", "mcp", "python", str(lanzador)]}
+            "args": ["run", "--with", "mcp<2", "python", str(lanzador)]}
 
 doc.setdefault("engine", tomlkit.table())
 doc["engine"].setdefault("default", "ollama")
