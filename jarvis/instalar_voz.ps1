@@ -5,7 +5,7 @@ $base = "https://raw.githubusercontent.com/sentineltradinghq/sentinel-post/main/
 Invoke-WebRequest "$base/jarvis_voz.py" -OutFile "$dir\jarvis_voz.py" -UseBasicParsing
 Invoke-WebRequest "$base/lanzador.py" -OutFile "$dir\lanzador.py" -UseBasicParsing
 
-$deps = @("--python","3.11","--with","openwakeword","--with","onnxruntime","--with","faster-whisper","--with","sounddevice","--with","numpy","--with","requests","--with","pywin32")
+$deps = @("--python","3.11","--with","openwakeword","--with","onnxruntime","--with","faster-whisper","--with","sounddevice","--with","numpy","--with","requests","--with","pywin32","--with","ddgs")
 
 Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like "*jarvis_voz.py*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 Write-Host "1/3 Descargando modelos (puede tardar unos minutos la primera vez)..."

@@ -18,13 +18,24 @@ log = logging.getLogger("jarvis_voz")
 
 MODELO_IA = "qwen3.5:9b"
 OLLAMA = "http://localhost:11434/api/chat"
-UMBRAL_WAKE = 0.5          # sensibilidad de "Hey Jarvis" (0-1; más alto = más estricto)
+import json as _json
+_CFG = {}
+try:
+    _CFG = _json.loads((BASE / "jarvis_voz.json").read_text(encoding="utf-8"))
+except Exception:
+    pass
+UMBRAL_WAKE = float(_CFG.get("umbral", 0.3))   # sensibilidad de "Hey Jarvis" (más bajo = más sensible)
 RATE, BLOQUE = 16000, 1280  # 80 ms por bloque
-MAX_ORDEN_S, SILENCIO_S = 8, 1.0
+MAX_ORDEN_S, SILENCIO_S = 10, 1.2
+RUIDO = 300.0  # nivel de ruido de fondo, se actualiza solo
 
-SISTEMA = ("Eres Jarvis, el asistente de voz de Yasmani (Sentinel Trading). "
-           "Responde SIEMPRE en español, en 1 a 3 frases cortas, sin listas, "
-           "sin markdown ni emojis, porque tu respuesta se leerá en voz alta.")
+def sistema():
+    hoy = time.strftime("%d/%m/%Y")
+    return ("Eres Jarvis, el asistente de voz de Yasmani, dueño de Sentinel Trading (trading algorítmico de cripto). "
+            f"Hoy es {hoy}. Responde SIEMPRE en español, directo y concreto, con datos y cifras cuando los tengas, "
+            "en 2 a 5 frases, sin listas, sin markdown ni emojis, porque se leerá en voz alta. "
+            "Si te doy resultados de búsqueda web, úsalos como fuente principal y menciona la cifra o el hecho clave. "
+            "Nunca digas que no tienes acceso a internet si te di resultados. Si de verdad no sabes, dilo en una frase.")
 
 
 # ---------- voz (Windows SAPI) ----------
@@ -92,12 +103,62 @@ def interpretar(texto: str):
     return ("preguntar", texto)
 
 
+MONEDAS = {"bitcoin": "bitcoin", "btc": "bitcoin", "ethereum": "ethereum", "ether": "ethereum",
+           "eth": "ethereum", "solana": "solana", "sol": "solana", "xrp": "ripple", "ripple": "ripple",
+           "bnb": "binancecoin", "dogecoin": "dogecoin", "doge": "dogecoin"}
+
+def precio_moneda(texto: str):
+    n = normalizar(texto)
+    if not re.search(r"\b(precio|cuanto (esta|vale|cuesta)|cotiza|a como esta|como esta)\b", n):
+        return None
+    for palabra, cid in MONEDAS.items():
+        if re.search(rf"\b{palabra}\b", n):
+            r = requests.get("https://api.coingecko.com/api/v3/simple/price", timeout=10, params={
+                "ids": cid, "vs_currencies": "usd", "include_24hr_change": "true"}).json()[cid]
+            p, c = r["usd"], r.get("usd_24h_change", 0) or 0
+            precio = f"{p:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            if p >= 100:
+                precio = precio.split(",")[0]
+            mov = "sube" if c >= 0 else "baja"
+            cambio = f"{abs(c):.1f}".replace(".", ",")
+            return f"{palabra.capitalize()} está en {precio} dólares, {mov} {cambio} por ciento en 24 horas."
+    return None
+
+ACTUALIDAD = re.compile(r"\b(hoy|ahora|actual|ultim\w*|noticia\w*|paso|pasando|ocurrio|sucedio|ayer|semana|mes|"
+                        r"precio|mercado|hackeo|hack|robo|binance|bybit|bitcoin|cripto\w*|busca|investiga|"
+                        r"quien es|quien gano|cuando|clima|202\d)\b")
+
+def buscar_web(consulta: str) -> str:
+    try:
+        from ddgs import DDGS
+        d = DDGS()
+        res = []
+        try:
+            res = list(d.news(consulta, max_results=5))
+        except Exception:
+            pass
+        if len(res) < 3:
+            res += list(d.text(consulta, max_results=5))
+        return "\n".join(f"- {x.get('title','')}: {x.get('body','')} ({x.get('date','')})" for x in res[:8])
+    except Exception as e:
+        log.warning("búsqueda: %s", e)
+        return ""
+
 def preguntar_ia(texto: str) -> str:
-    r = requests.post(OLLAMA, timeout=120, json={
+    rapido = precio_moneda(texto)
+    if rapido:
+        return rapido
+    contenido = texto
+    if ACTUALIDAD.search(normalizar(texto)):
+        resultados = buscar_web(texto)
+        log.info("Búsqueda web: %d caracteres", len(resultados))
+        if resultados:
+            contenido = f"Pregunta: {texto}\n\nResultados de búsqueda web de hoy:\n{resultados}"
+    r = requests.post(OLLAMA, timeout=180, json={
         "model": MODELO_IA, "stream": False, "think": False,
-        "options": {"num_predict": 220},
-        "messages": [{"role": "system", "content": SISTEMA},
-                     {"role": "user", "content": texto}]})
+        "options": {"num_predict": 350},
+        "messages": [{"role": "system", "content": sistema()},
+                     {"role": "user", "content": contenido}]})
     r.raise_for_status()
     return limpiar_para_voz(r.json()["message"]["content"]) or "No tengo respuesta para eso."
 
@@ -125,6 +186,8 @@ def _ejecutar(texto: str) -> bool:
     elif accion == "abrir":
         res = lanzador._abrir(arg)
         hablar(f"Abriendo {arg}." if res.startswith("Abr") else f"No encontré {arg}.")
+    elif accion == "pensar":
+        pass
     elif accion == "listar":
         hablar("Puedo abrir TradingView, Binance, Bybit, Discord, Grafana, Metricool, Whop, "
                "cualquier programa instalado, y activar el modo trading.")
@@ -163,14 +226,15 @@ def transcribir(modelo, audio_i16: np.ndarray) -> str:
 # ---------- bucle principal ----------
 def grabar_orden(cola) -> np.ndarray:
     trozos, silencio, inicio = [], 0.0, time.time()
-    umbral = None
+    umbral = max(RUIDO * 2.5, 250.0)
+    hablo = False
     while time.time() - inicio < MAX_ORDEN_S:
         b = cola.get()
         trozos.append(b)
         rms = float(np.sqrt(np.mean(b.astype(np.float32) ** 2)))
-        if umbral is None:
-            umbral = max(rms * 2.5, 300.0)   # nivel de ruido inicial
-        if rms < umbral and time.time() - inicio > 1.0:
+        if rms >= umbral:
+            hablo = True
+        if rms < umbral and (hablo or time.time() - inicio > 3.0):
             silencio += BLOQUE / RATE
             if silencio >= SILENCIO_S:
                 break
@@ -180,6 +244,7 @@ def grabar_orden(cola) -> np.ndarray:
 
 
 def main():
+    global RUIDO
     log.info("Iniciando Jarvis por voz")
     wake = cargar_wake()
     stt = cargar_whisper()
@@ -192,16 +257,20 @@ def main():
         hablar("Jarvis listo.")
         while True:
             bloque = cola.get()
+            rms = float(np.sqrt(np.mean(bloque.astype(np.float32) ** 2)))
+            RUIDO = 0.98 * RUIDO + 0.02 * rms
             puntajes = wake.predict(bloque)
             if max(puntajes.values()) < UMBRAL_WAKE:
                 continue
             log.info("Palabra de activación detectada %s", puntajes)
             tono(True)
-            with cola.mutex:
-                cola.queue.clear()
             audio = grabar_orden(cola)
             tono(False)
             texto = transcribir(stt, audio)
+            if not texto:
+                hablar("No te escuché bien, repite por favor.")
+                wake.reset()
+                continue
             log.info("Escuché: %r", texto)
             if not ejecutar(texto):
                 break

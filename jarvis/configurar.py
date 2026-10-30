@@ -23,6 +23,11 @@ doc["intelligence"].setdefault("default_model", "qwen3.5:9b")
 doc.setdefault("agent", tomlkit.table())
 doc["agent"]["default_agent"] = "orchestrator"
 doc.setdefault("tools", tomlkit.table())
+habilitadas = list(doc["tools"].get("enabled", []))
+for t in ("web_search", "think"):
+    if t not in habilitadas:
+        habilitadas.append(t)
+doc["tools"]["enabled"] = habilitadas
 mcp = doc["tools"].setdefault("mcp", tomlkit.table())
 existentes = []
 try:
