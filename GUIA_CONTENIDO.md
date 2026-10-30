@@ -9,7 +9,7 @@ Esta guía la sigue Claude en cada tarea programada de publicación.
 - Imagen: 1080×1350 px (vertical), SIEMPRE en JPG (.jpg); TikTok rechaza PNG, fuente DejaVu Sans, cuadrícula sutil de fondo, "SENTINEL TRADING" arriba en dorado, @sentineltradinghq y "Contenido educativo. No es asesoría financiera." abajo.
 
 ## Horarios
-- 7:50 a. m. → educativo: conceptos de trading, cripto, consejos, gestión de riesgo, psicología.
+- 7:30 a. m. → educativo (se prepara a las 6:02 a. m.): conceptos de trading, cripto, consejos, gestión de riesgo, psicología.
 - 7:00 p. m. → Sentinel: avances del proyecto, comunidad, resultados con transparencia, mercado del día.
 
 ## Tono
