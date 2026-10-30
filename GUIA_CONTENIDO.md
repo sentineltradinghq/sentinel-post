@@ -26,6 +26,16 @@ Esta guía la sigue Claude en cada tarea programada de publicación.
 5. Redes: facebook, instagram y tiktok (tiktokData con title corto y privacyOption PUBLIC_TO_EVERYONE).
 7. Límite de Instagram: el texto del post debe tener MENOS de 2.000 caracteres (Instagram rechaza más de 2.200 y el post falla). Si el texto es más largo, crear un post aparte solo para Instagram con una versión resumida.
 8. Carruseles: hasta 10 imágenes JPG en el mismo post (media con varias URLs). Instagram y TikTok los muestran como carrusel deslizable; Facebook como post con varias fotos.
+9. Etiquetar fuentes (sobre todo en noticias): antes de los hashtags, agregar una línea
+   "📰 Fuentes: @cuenta1 @cuenta2" con las cuentas oficiales de Instagram de los medios usados.
+   - Usar SOLO cuentas verificadas. Si el medio no está en esta lista, buscar en la web su cuenta oficial de Instagram
+     y confirmarla antes de usarla; si no se puede confirmar, escribir el nombre del medio sin @.
+   - Cuentas verificadas: CoinDesk @coindesk · Cointelegraph @cointelegraph · The New York Times @nytimes ·
+     Reuters @reuters · CNN @cnn · Al Jazeera @aljazeeraenglish · Bloomberg @bloombergbusiness ·
+     CNBC @cnbc · Yahoo Finance @yahoofinance · NBC News @nbcnews · The Block @theblock__ (verificar) ·
+     Decrypt @decryptmedia (verificar) · Binance @binance · Bybit @bybit_official (verificar)
+   - En Instagram la mención queda clicable; en Facebook y TikTok puede verse como texto, igual sirve como crédito.
+   - No etiquetar personas particulares, solo medios, empresas y cuentas oficiales.
 6. No repetir temas: revisar `temas_publicados.md` antes de elegir y añadir el tema nuevo al final.
 
 ## Flujo
