@@ -6,7 +6,7 @@ Esta guía la sigue Claude en cada tarea programada de publicación.
 - Nombre: Sentinel Trading · redes: @sentineltradinghq (Instagram, Facebook, TikTok)
 - Metricool brandId: 7746945 · zona horaria: America/Bogota
 - Colores: fondo #0B0F1A, dorado #F5A623, blanco #F0F2F7, gris #969EAF, verde #2ECC71, rojo #E74C3C
-- Imagen: 1080×1350 px (vertical), fuente DejaVu Sans, cuadrícula sutil de fondo, "SENTINEL TRADING" arriba en dorado, @sentineltradinghq y "Contenido educativo. No es asesoría financiera." abajo.
+- Imagen: 1080×1350 px (vertical), SIEMPRE en JPG (.jpg); TikTok rechaza PNG, fuente DejaVu Sans, cuadrícula sutil de fondo, "SENTINEL TRADING" arriba en dorado, @sentineltradinghq y "Contenido educativo. No es asesoría financiera." abajo.
 
 ## Horarios
 - 7:50 a. m. → educativo: conceptos de trading, cripto, consejos, gestión de riesgo, psicología.
@@ -28,7 +28,7 @@ Esta guía la sigue Claude en cada tarea programada de publicación.
 
 ## Flujo
 1. Elegir tema (sin repetir), redactar texto, generar imagen con Pillow.
-2. Guardar la imagen en `posts/AAAA-MM/AAAA-MM-DD_am|pm_tema.png`, commit y push a main.
+2. Guardar la imagen en `posts/AAAA-MM/AAAA-MM-DD_am|pm_tema.jpg`, commit y push a main.
 3. Crear borrador en Metricool (draft: true) con media = https://raw.githubusercontent.com/sentineltradinghq/sentinel-post/main/<ruta>
 4. Mostrar al usuario la imagen y el texto y esperar "aprobado" o cambios.
 5. Con "aprobado": pasar a draft false a la hora del horario (o 5 min después si ya pasó).
