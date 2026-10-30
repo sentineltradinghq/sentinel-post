@@ -5,3 +5,4 @@
 - 2026-10-30 am — Asimetría de las pérdidas (−50% exige +100% para recuperar; gestión de riesgo)
 - 2026-10-30 — Actualización hackeo a Binance ($6.300 M confirmado, Corea del Norte, retiros suspendidos)
 - 2026-10-30 mediodía — Lo que dijo Binance oficialmente sobre el hackeo
+- 2026-10-30 pm — Mercado cripto del día: viernes de miedo (F&G 30, BTC mínimos de 6 semanas, $1.570 M liquidados) y disciplina de un sistema
