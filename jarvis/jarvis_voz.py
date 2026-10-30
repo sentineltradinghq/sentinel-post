@@ -91,6 +91,8 @@ def interpretar(texto: str):
     if c:
         nombre = re.sub(r"^(el|la|los|las|mi|a)\s+", "", c.group(2)).strip()
         nombre = re.sub(r"^(app|aplicacion|programa)\s+(de\s+)?", "", nombre).strip()
+        if nombre in ("asistente", "jarvis", "el asistente"):
+            return ("salir", "")
         if "modo" in nombre and "trad" in nombre:
             return ("cerrar_modo", "trading")
         if nombre:
