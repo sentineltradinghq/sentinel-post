@@ -90,7 +90,7 @@ def interpretar(texto: str):
     c = re.search(r"\b(cierra|cerrar|cierrame|termina)\b\s+(.*)", n)
     if c:
         nombre = re.sub(r"^(el|la|los|las|mi|a)\s+", "", c.group(2)).strip()
-        nombre = re.sub(r"^(app|aplicacion|programa)\s+(de\s+)?", "", nombre).strip()
+        nombre = re.sub(r"^(app|aplicacion|programa|carpeta|juego)\s+(de\s+)?", "", nombre).strip()
         if nombre in ("asistente", "jarvis", "el asistente"):
             return ("salir", "")
         if "modo" in nombre and "trad" in nombre:
@@ -103,10 +103,21 @@ def interpretar(texto: str):
         return ("salir", "")
     if re.search(r"que (apps|aplicaciones|programas) (puedes|sabes) abrir|lista de (apps|aplicaciones)", n):
         return ("listar", "")
+    controles = [
+        (r"\b(sube|subele|subir|aumenta)\b.*\bvolumen\b|\bmas volumen\b", "subir_volumen"),
+        (r"\b(baja|bajale|bajar|disminuye)\b.*\bvolumen\b|\bmenos volumen\b", "bajar_volumen"),
+        (r"\b(silencia|silencio|mute|quita el sonido|activa el sonido|pon el sonido)\b", "silenciar"),
+        (r"\bbloquea\w*\b.*\b(pantalla|pc|computadora|equipo|compu)\b", "bloquear"),
+        (r"\bminimiza\w*\b|\bmuestra(me)? el escritorio\b", "minimizar"),
+        (r"\b(captura|screenshot|pantallazo)\b", "captura"),
+    ]
+    for patron, accion in controles:
+        if re.search(patron, n):
+            return ("control", accion)
     m = re.search(r"\b(abre|abrir|abreme|abri|ejecuta|ejecutame|lanza|inicia|activa|activame|pon|ponme|muestrame)\b\s+(.*)", n)
     if m:
         nombre = re.sub(r"^(el|la|los|las|mi|a)\s+", "", m.group(2)).strip()
-        nombre = re.sub(r"^(app|aplicacion|programa|pagina|web)\s+(de\s+)?", "", nombre).strip()
+        nombre = re.sub(r"^(app|aplicacion|programa|pagina|web|carpeta|juego|archivo)\s+(de\s+)?", "", nombre).strip()
         nombre = re.sub(r"\s+(por favor|porfa)$", "", nombre)
         if nombre:
             return ("abrir", nombre)
@@ -198,6 +209,8 @@ def _ejecutar(texto: str) -> bool:
         hablar(f"Abriendo {arg}." if res.startswith("Abr") else f"No encontré {arg}.")
     elif accion == "pensar":
         pass
+    elif accion == "control":
+        hablar(lanzador._control(arg))
     elif accion == "cerrar":
         hablar(lanzador._cerrar(arg))
     elif accion == "cerrar_modo":
@@ -206,8 +219,8 @@ def _ejecutar(texto: str) -> bool:
                 lanzador._cerrar(x)
         hablar("Cerré las apps del modo trading. Las pestañas del navegador quedan abiertas.")
     elif accion == "listar":
-        hablar("Puedo abrir TradingView, Binance, Bybit, Discord, Grafana, Metricool, Whop, "
-               "cualquier programa instalado, y activar el modo trading.")
+        hablar("Puedo abrir y cerrar todo lo de tu escritorio: apps de trading, juegos, carpetas y programas. "
+               "También el modo trading, el volumen, bloquear la pantalla, minimizar todo y hacer capturas.")
     elif accion == "salir":
         hablar("Me apago. Hasta luego.")
         return False
