@@ -87,6 +87,14 @@ def interpretar(texto: str):
     n = normalizar(texto)
     if not n:
         return ("nada", "")
+    c = re.search(r"\b(cierra|cerrar|cierrame|termina)\b\s+(.*)", n)
+    if c:
+        nombre = re.sub(r"^(el|la|los|las|mi|a)\s+", "", c.group(2)).strip()
+        nombre = re.sub(r"^(app|aplicacion|programa)\s+(de\s+)?", "", nombre).strip()
+        if "modo" in nombre and "trad" in nombre:
+            return ("cerrar_modo", "trading")
+        if nombre:
+            return ("cerrar", nombre)
     if "modo" in n and ("trading" in n or "trade" in n or "treiding" in n):
         return ("modo", "trading")
     if re.search(r"\b(apagate|detente|cierra el asistente|apaga el asistente)\b", n):
@@ -188,6 +196,13 @@ def _ejecutar(texto: str) -> bool:
         hablar(f"Abriendo {arg}." if res.startswith("Abr") else f"No encontré {arg}.")
     elif accion == "pensar":
         pass
+    elif accion == "cerrar":
+        hablar(lanzador._cerrar(arg))
+    elif accion == "cerrar_modo":
+        for x in lanzador.MODOS[arg]:
+            if x not in lanzador.WEBS:
+                lanzador._cerrar(x)
+        hablar("Cerré las apps del modo trading. Las pestañas del navegador quedan abiertas.")
     elif accion == "listar":
         hablar("Puedo abrir TradingView, Binance, Bybit, Discord, Grafana, Metricool, Whop, "
                "cualquier programa instalado, y activar el modo trading.")

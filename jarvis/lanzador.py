@@ -30,6 +30,15 @@ SISTEMA = {
     "calculadora": "calc", "explorador": "explorer", "misarchivos": "explorer",
     "administradordetareas": "taskmgr", "configuracion": "ms-settings:", "paint": "mspaint",
 }
+# Para cerrar: nombre dicho -> nombre del proceso de Windows
+PROCESOS = {
+    "cmd": "cmd", "ceemede": "cmd", "consola": "cmd", "simbolodelsistema": "cmd",
+    "terminal": "windowsterminal", "powershell": "powershell", "blocdenotas": "notepad",
+    "notepad": "notepad", "calculadora": "calculator", "administradordetareas": "taskmgr",
+    "configuracion": "systemsettings", "paint": "mspaint", "explorador": "explorer", "misarchivos": "explorer",
+}
+# Nunca se cierran (sistema, Ollama y el propio Jarvis)
+PROTEGIDOS = ("explorer", "ollama", "python", "uv", "svchost", "system", "winlogon", "csrss", "dwm")
 # Modos: varias cosas de una vez
 MODOS = {
     "trading": ["tradingview", "binance", "bybit", "discord", "grafana"],
@@ -102,6 +111,27 @@ def _abrir(nombre: str) -> str:
         subprocess.Popen(["cmd", "/c", "start", "", clave])
         return f"Abrí {nombre}."
     return f"No encontré '{nombre}' en el PC. Revisa el nombre o agrégalo al lanzador."
+
+
+def _cerrar(nombre: str) -> str:
+    clave = _clave(nombre)
+    if clave in WEBS:
+        return f"{nombre} está en el navegador; ciérralo desde la pestaña."
+    proc = PROCESOS.get(clave, APPS.get(clave, clave)).lower().replace(" ", "")
+    if not proc or any(proc.startswith(p) for p in PROTEGIDOS):
+        return f"Por seguridad no cierro {nombre}."
+    ps = (f"Get-Process | Where-Object {{ $_.ProcessName -like '*{proc}*' -and $_.MainWindowHandle -ne 0 }} | "
+          "ForEach-Object { [void]$_.CloseMainWindow(); $_.ProcessName }")
+    out = subprocess.run(["powershell", "-NoProfile", "-Command", ps],
+                         capture_output=True, text=True, timeout=20).stdout.strip()
+    return f"Cerré {nombre}." if out else f"No encontré {nombre} abierto."
+
+
+@_tool()
+def cerrar_app(nombre: str) -> str:
+    """Cierra una aplicación abierta por su nombre (como darle a la X; si hay cambios sin guardar,
+    la app puede preguntar). No cierra pestañas del navegador ni procesos del sistema."""
+    return _cerrar(nombre)
 
 
 @_tool()
