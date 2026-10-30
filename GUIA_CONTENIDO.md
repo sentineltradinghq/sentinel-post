@@ -24,6 +24,8 @@ Esta guía la sigue Claude en cada tarea programada de publicación.
    🔗 Únete gratis a la comunidad: https://discord.gg/CXgNyKJRtu
    🌐 Conoce Sentinel: https://sentinel-algo.whop.site
 5. Redes: facebook, instagram y tiktok (tiktokData con title corto y privacyOption PUBLIC_TO_EVERYONE).
+7. Límite de Instagram: el texto del post debe tener MENOS de 2.000 caracteres (Instagram rechaza más de 2.200 y el post falla). Si el texto es más largo, crear un post aparte solo para Instagram con una versión resumida.
+8. Carruseles: hasta 10 imágenes JPG en el mismo post (media con varias URLs). Instagram y TikTok los muestran como carrusel deslizable; Facebook como post con varias fotos.
 6. No repetir temas: revisar `temas_publicados.md` antes de elegir y añadir el tema nuevo al final.
 
 ## Flujo
