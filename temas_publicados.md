@@ -8,3 +8,4 @@
 - 2026-10-30 pm — Mercado cripto del día: viernes de miedo (F&G 30, BTC mínimos de 6 semanas, $1.570 M liquidados) y disciplina de un sistema
 - 2026-10-30 6:00 p. m. (Reel) La casa Binance: ladrón, derrumbe, Bitcoin asustado y vela roja; lección de no guardar todo en un exchange
 - 2026-10-31 am — La regla del 1% (cuánto arriesgar por operación, 10 pérdidas seguidas, cálculo del tamaño de posición)
+- 2026-10-31 (Reel + historia en video) — La regla del 1% en video animado
