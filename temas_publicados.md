@@ -10,3 +10,4 @@
 - 2026-10-31 am — La regla del 1% (cuánto arriesgar por operación, 10 pérdidas seguidas, cálculo del tamaño de posición)
 - 2026-10-31 (Reel + historia en video) — La regla del 1% en video animado
 - 2026-10-31 especial ~4:30 p. m. — Binance repone el 90% de lo robado (antes 80%), Prueba de Reservas (10 tokens 1:1), retiros plan 1 nov
+- 2026-10-31 pm — Transparencia de Sentinel: cada cierre (ganado o perdido) se publica en Discord y resumen semanal los domingos; anuncio del primer resumen
