@@ -1,0 +1,15 @@
+{
+ "bot": "BTC 15m Short",
+ "producto": "Sentinel Apex",
+ "moneda": "BTC",
+ "par": "BTC/USDT:USDT",
+ "lado": "short",
+ "timeframe": "15m",
+ "apalancamiento": 2.0,
+ "resultado_pct": 14.954,
+ "entrada": 83710.3,
+ "salida": 77762.7,
+ "abierta": "2026-09-21T09:00:07.381197+00:00",
+ "cerrada": "2026-10-30T00:01:07.338000+00:00",
+ "imagen": "resultados/imagenes/2026-10/2026-10-29_1901_btc_15m_short_6.jpg"
+}
