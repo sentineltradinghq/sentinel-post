@@ -251,7 +251,8 @@ def tarjeta(bot, t, ohlcv, tf, balance_mes, ruta):
            font=F(FR, 28), fill=GREY)
     d.text((80, 1250), "@sentineltradinghq", font=F(FB, 28), fill=WHITE)
     d.text((80, 1295), "Forward test en vivo, sin capital real. No es asesoría financiera.", font=F(FR, 21), fill=GREY)
-    img.save(ruta, quality=90)
+    img.save(ruta, quality=95, subsampling=0)          # JPG nítido (GitHub / redes)
+    img.save(ruta[:-4] + ".png", optimize=True)          # PNG sin pérdida (Discord)
 
 
 # ---------------------------------------------------------------- envíos
@@ -264,9 +265,11 @@ def a_discord(ruta, bot, t, prueba=False):
              f"-# Forward test en vivo, sin capital real. No es asesoría financiera.")
     if prueba:
         texto = "🧪 Prueba de instalación (último cierre registrado)\n" + texto
-    with open(ruta, "rb") as f:
+    png = ruta[:-4] + ".png"
+    archivo, tipo = (png, "image/png") if os.path.exists(png) else (ruta, "image/jpeg")
+    with open(archivo, "rb") as f:
         r = requests.post(url, data={"payload_json": json.dumps({"content": texto, "username": "Sentinel Resultados"})},
-                          files={"files[0]": (os.path.basename(ruta), f, "image/jpeg")}, timeout=30)
+                          files={"files[0]": (os.path.basename(archivo), f, tipo)}, timeout=30)
     if r.status_code >= 300:
         raise RuntimeError(f"Discord {r.status_code}: {r.text[:200]}")
 
