@@ -336,6 +336,17 @@ def main():
         log("prueba enviada a Discord:", ruta)
         return
 
+    if modo == "--anteriores":
+        # publica los N cierres anteriores al último (Discord + GitHub);
+        # el último solo se sube a GitHub, porque ya llegó a Discord como tarjeta de prueba
+        n = int(sys.argv[2]) if len(sys.argv) > 2 else 2
+        if todos:
+            for bot, t in todos[-(n + 1):-1]:
+                estado[t["clave"]] = {"forzar": True}
+            estado[todos[-1][1]["clave"]] = {"discord": True, "forzar": True}
+            guardar_estado(estado)
+            log(f"se publicarán {min(n, len(todos) - 1)} cierres anteriores y el último se sube a GitHub")
+
     ahora = datetime.now(timezone.utc)
     for bot, t in todos:
         e = estado.get(t["clave"], {})
