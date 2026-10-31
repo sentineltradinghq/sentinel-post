@@ -22,7 +22,7 @@ x80=80+int(920*0.8); d.line([(x80,y-8),(x80,y+52)],fill=WHITE,width=3)
 d.text((x80,y+80),"Ayer: 80%",font=f(R,24),fill=GREY,anchor="rm")
 d.text((100,y+22),"Hoy: 90% repuesto",font=f(B,26),fill=(11,15,26),anchor="lm")
 d.text((1000,y+80),"Falta 10%",font=f(R,24),fill=GREY,anchor="rm")
-rows=[("RETIROS","Plan: reabrir el domingo 1 de noviembre,","si pasan las revisiones de seguridad.",GOLD),
+rows=[("MAÑANA: REABREN LOS RETIROS","Plan: domingo 1 de noviembre,","si pasan las revisiones de seguridad.",GOLD),
       ("PRUEBA DE RESERVAS","Nueva foto del 31 oct: 10 tokens al 100%.","Prueba completa esperada hacia el 3 nov.",GREEN),
       ("PÉRDIDAS","Binance dice que las cubre la empresa,","no los usuarios (tesorería y fondo SAFU).",WHITE)]
 y=560
@@ -33,10 +33,10 @@ for t,l1,l2,c in rows:
     d.text((115,y+66),l1,font=f(R,28),fill=WHITE)
     d.text((115,y+104),l2,font=f(R,28),fill=GREY)
     y+=170
-d.text((80,1080),"Hackeo de $6.300 M. Aún falta reponer el 10%.",font=f(R,28),fill=GREY)
-d.text((80,1130),"La lección no cambia:",font=f(R,32),fill=WHITE)
-d.text((80,1172),"no guardes todo en un exchange.",font=f(B,40),fill=GOLD)
+d.text((80,1080),"Si abren los retiros, puede haber volatilidad.",font=f(R,28),fill=GREY)
+d.text((80,1130),"Define tu riesgo antes, no en caliente.",font=f(R,32),fill=WHITE)
+d.text((80,1172),"Prepárate para un movimiento.",font=f(B,40),fill=GOLD)
 d.line([(80,1235),(1000,1235)],fill=LINE,width=2)
 d.text((80,1252),"@sentineltradinghq",font=f(B,28),fill=WHITE)
 d.text((80,1295),"Contenido educativo. No es asesoría financiera.",font=f(R,22),fill=GREY)
-img.save("posts/2026-10/2026-10-31_especial_binance_90.jpg",quality=92,subsampling=0)
+img.save("posts/2026-10/2026-10-31_especial_binance_90_v2.jpg",quality=92,subsampling=0)
