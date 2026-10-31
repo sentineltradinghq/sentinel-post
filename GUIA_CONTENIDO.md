@@ -58,3 +58,13 @@ Esta guía la sigue Claude en cada tarea programada de publicación.
    (si es carrusel, usar la portada). Commit y push, y programar en Metricool 5 minutos después del post:
    providers instagram + facebook, instagramData {"type":"STORY"}, facebookData {"type":"STORY"}, text vacío, sin primer comentario.
    No usar emojis en el texto de la imagen (la fuente no los muestra).
+
+## Resultados de los bots
+- El VPS (script `resultados/publicar_cierres.py`, cron cada 5 min) publica cada operación CERRADA en Discord con su tarjeta
+  y sube a este repo `resultados/imagenes/AAAA-MM/*.jpg` y `resultados/datos/AAAA-MM/*.json`. Nunca se publican entradas.
+- Las tarjetas dicen "EN VIVO" y llevan abajo "Forward test en vivo, sin capital real." Resultado solo en % (sobre el margen), nunca USDT.
+- Domingo: el post de las 7:00 p. m. ES el resumen semanal (carrusel de 5 imágenes):
+  `python tools/resumen_semanal.py AAAA-MM-DD` (fecha del domingo) → imprime cifras y rutas en posts/AAAA-MM/.
+  Texto: cifras reales de la semana (operaciones, ganadas, perdidas, mejor y peor cierre), mostrar también las pérdidas,
+  sin parámetros ni "receta", con la frase "Resultados de forward test en vivo, sin capital real." antes del cierre fijo de la regla 3.
+  Si la semana no tuvo cierres, no se hace carrusel: se hace un post Sentinel normal.
