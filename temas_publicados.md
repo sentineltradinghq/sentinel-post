@@ -12,3 +12,4 @@
 - 2026-10-31 especial ~4:30 p. m. — Binance repone el 90% de lo robado (antes 80%), Prueba de Reservas (10 tokens 1:1), retiros plan 1 nov
 - 2026-10-31 pm — Transparencia de Sentinel: cada cierre (ganado o perdido) se publica en Discord y resumen semanal los domingos; anuncio del primer resumen
 - 2026-11-01 am — Relación riesgo/beneficio (R:B) y tasa de acierto mínima (1:1=50%, 1:2=33%, 1:3=25%; fallar 6 de 10 y ganar)
+- 2026-11-01 pm — Primer resumen semanal de los bots (26 oct–1 nov): 3 operaciones, 2 ganadas, 1 perdida; mejor ETH 15m Short +18,04 %, peor ETH 15m Long −15,47 % (carrusel 5 imágenes)
