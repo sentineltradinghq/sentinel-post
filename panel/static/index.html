@@ -58,7 +58,7 @@ tr.be td:first-child{box-shadow:inset 4px 0 var(--green)}
 .form input,.form select{width:100%}
 .barra{height:10px;background:var(--panel2);border-radius:6px;overflow:hidden;margin:6px 0}
 .barra>div{height:100%}
-#detalle{position:fixed;right:0;top:0;bottom:0;width:min(440px,100%);background:var(--panel);border-left:1px solid var(--line);
+#detalle{position:fixed;right:0;top:0;bottom:0;width:min(560px,100%);background:var(--panel);border-left:1px solid var(--line);
   transform:translateX(100%);transition:.2s;z-index:9;overflow:auto;padding:16px}
 #detalle.on{transform:none}
 .x{float:right;background:none;border:0;color:var(--mut);font-size:22px;cursor:pointer}
@@ -67,7 +67,9 @@ textarea{width:100%;background:var(--panel2);color:var(--txt);border:1px solid v
 .aviso{color:var(--mut);font-size:12px;margin-top:8px}
 .vacio{padding:30px;text-align:center;color:var(--mut)}
 .err{color:var(--red);font-size:12px}
-td:first-child,th:first-child{position:sticky;left:0;z-index:1;background:var(--bg)} th:first-child{z-index:2;background:var(--panel2)}
+td:first-child,th:first-child{position:sticky;left:0;z-index:1;background:var(--bg)}
+tr.liq td:first-child{background:#2a1820} tr.sinsl td:first-child{background:#111f36} tbody tr:hover td:first-child{background:#161c2b}
+#detalle table td,#detalle table th{padding:5px 6px;white-space:normal} th:first-child{z-index:2;background:var(--panel2)}
 @media (max-width:700px){header{position:static}.kpis{grid-template-columns:1fr 1fr}.kpi b{font-size:15px}.leyenda{margin-left:0}main{padding:10px 10px 40px}}
 </style>
 </head>
@@ -96,7 +98,8 @@ td:first-child,th:first-child{position:sticky;left:0;z-index:1;background:var(--
     <select id="fCuenta"><option value="">Todas las cuentas</option></select>
     <select id="fOrigen"><option value="">Bots y manuales</option><option value="bot">Solo bots</option><option value="manual">Solo manuales</option></select>
     <select id="fMoneda"><option value="">Todas las monedas</option></select>
-    <label class="chk"><input type="checkbox" id="fEsc"> Ver liquidación a 2x · 3x · 5x · 10x</label>
+    <label class="chk"><input type="checkbox" id="fEsc"> Ver escenarios de apalancamiento:</label>
+    <input id="fLevs" value="2,3,5,10,25" style="width:150px" title="Escribe los apalancamientos separados por comas">
     <div class="leyenda">
       <span><i style="background:var(--red)"></i>Cerca de liquidación</span>
       <span><i style="background:var(--blue)"></i>Sin stop (riesgo hasta liquidación)</span>
@@ -186,7 +189,8 @@ td:first-child,th:first-child{position:sticky;left:0;z-index:1;background:var(--
 <script>
 // ------------------------------------------------------------------ utilidades
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const MMR = 0.005;  // margen de mantenimiento aproximado para estimar liquidaciones
+const MMR = 0.005;
+const LEVS = () => [...new Set(($('#fLevs')?.value || '2,3,5,10,25').split(/[^0-9.]+/).map(Number).filter(x => x >= 1 && x <= 200))].sort((a, b) => a - b);  // margen de mantenimiento aproximado para estimar liquidaciones
 const nf = (v, d) => v == null || isNaN(v) ? '—' : Number(v).toLocaleString('es-CO', {minimumFractionDigits: d, maximumFractionDigits: d});
 const dec = p => p >= 1000 ? 1 : p >= 10 ? 2 : p >= 1 ? 3 : 5;
 const px = p => nf(p, dec(Math.abs(p || 0)));
@@ -215,7 +219,8 @@ function derivar(p, equityCuenta) {
   const riesgo = distR != null ? distR * p.cantidad : null;
   const obj = k => distR ? p.entrada + s * k * distR : null;
   const rActual = distR ? (p.precio - p.entrada) * s / distR : null;
-  const esc = {}; [2, 3, 5, 10].forEach(l => esc[l] = liqEst(p.entrada, p.lado, l));
+  const mov = (p.precio - p.entrada) / p.entrada * s;           // movimiento a favor, en fracción
+  const esc = {}; LEVS().forEach(l => esc[l] = {liq: liqEst(p.entrada, p.lado, l), pct: mov * l * 100, usd: margen * mov * l});
   return {...p, valor, margen, pnl, pnlPct: margen ? pnl / margen * 100 : 0, liq, distLiq, sinSL, riesgo,
     riesgoPct: equityCuenta ? riesgo / equityCuenta * 100 : null, o1: obj(1), o2: obj(2), o3: obj(3), rActual, esc};
 }
@@ -282,7 +287,6 @@ const COLS = [
   ['par', 'Par', 'izq'], ['lado', 'Lado', 'izq'], ['cuenta', 'Cuenta', 'izq'], ['origen', 'Origen', 'izq'],
   ['cantidad', 'Cantidad'], ['valor', 'Valor'], ['entrada', 'Entrada prom.'], ['precio', 'Precio'],
   ['pnl', 'PnL $'], ['pnlPct', 'PnL %'], ['apalancamiento', 'Apal.'], ['liq', 'Liquidación'], ['distLiq', 'Dist. liq.'],
-  ['esc2', 'Liq 2x', 'e'], ['esc3', 'Liq 3x', 'e'], ['esc5', 'Liq 5x', 'e'], ['esc10', 'Liq 10x', 'e'],
   ['sl', 'Stop'], ['riesgo', 'Riesgo $'], ['riesgoPct', 'Riesgo % cta'], ['o1', '1:1'], ['o2', '1:2'], ['o3', '1:3'],
   ['funding', 'Funding'], ['comisiones', 'Comisiones'],
 ];
@@ -290,11 +294,11 @@ const COLS = [
 function pintarTabla(P) {
   const fc = $('#fCuenta').value, fo = $('#fOrigen').value, fm = $('#fMoneda').value, verEsc = $('#fEsc').checked;
   let F = P.filter(p => (!fc || p.cuenta === fc) && (!fo || p.origen === fo) && (!fm || p.moneda === fm));
-  const val = (p, k) => k.startsWith('esc') ? p.esc[k.slice(3)] : p[k];
+  const val = (p, k) => k.startsWith('esc') ? p.esc[k.slice(3)]?.pct : p[k];
   F.sort((a, b) => { let x = val(a, orden.k), y = val(b, orden.k);
     if (x == null) return 1; if (y == null) return -1;
     return (typeof x === 'string' ? x.localeCompare(y) : x - y) * (orden.asc ? 1 : -1); });
-  const cols = COLS.filter(c => verEsc || c[2] !== 'e');
+  const cols = [...COLS]; if (verEsc) cols.splice(cols.findIndex(c => c[0] === 'distLiq') + 1, 0, ...LEVS().map(l => ['esc' + l, `A ${l}x: liq · ganancia`]));
   $('#tabla thead').innerHTML = '<tr>' + cols.map(([k, t, c]) =>
     `<th data-k="${k}" class="${c === 'izq' ? 'izq' : ''}">${t}${orden.k === k ? ` <span class="ar">${orden.asc ? '▲' : '▼'}</span>` : ''}</th>`).join('') + '</tr>';
   if (!F.length) { $('#tabla tbody').innerHTML = `<tr><td colspan="${cols.length}" class="vacio">Sin posiciones abiertas con este filtro.</td></tr>`; return; }
@@ -310,7 +314,6 @@ function pintarTabla(P) {
       pnl: `<span class="${cls(p.pnl)}">${sg(p.pnl)}</span>`, pnlPct: `<span class="${cls(p.pnl)}">${sg(p.pnlPct)} %</span>`,
       apalancamiento: p.apalancamiento + 'x', liq: p.liq ? px(p.liq) + (p.liquidacion ? '' : ' <span class="mut">≈</span>') : '—',
       distLiq: p.distLiq != null ? `<span class="${cerca ? 'neg' : ''}">${nf(p.distLiq, 1)} %</span>` : '—',
-      esc2: px(p.esc[2]), esc3: px(p.esc[3]), esc5: px(p.esc[5]), esc10: px(p.esc[10]),
       sl: p.sl ? px(p.sl) : '<span class="tag t-sl">SIN STOP</span>',
       riesgo: p.riesgo != null ? `<span class="${p.sinSL ? 'azul' : 'neg'}">${usd(p.riesgo)}</span>` : '—',
       riesgoPct: p.riesgoPct != null ? `<span class="${p.sinSL ? 'azul' : ''}">${nf(p.riesgoPct, 2)} %</span>` : '<span class="mut">—</span>',
@@ -318,6 +321,9 @@ function pintarTabla(P) {
       funding: p.funding != null ? `<span class="${cls(p.funding)}">${sg(p.funding)}</span>` : '—',
       comisiones: p.comisiones != null ? `<span class="neg">${usd(-Math.abs(p.comisiones))}</span>` : '—',
     };
+    LEVS().forEach(l => { const e = p.esc[l], muerto = (p.precio - e.liq) * (p.lado === 'long' ? 1 : -1) <= 0;
+      celdas['esc' + l] = muerto ? `<span class="neg">${px(e.liq)}</span><br><span class="neg" style="font-size:12px">LIQUIDADO</span>`
+        : `${px(e.liq)}<br><span class="${cls(e.pct)}" style="font-size:12px">${sg(e.pct)} % · ${sg(e.usd)}</span>`; });
     return `<tr class="${tr}" data-id="${esc(p.id)}">` + cols.map(([k, , c]) => `<td class="${c === 'izq' ? 'izq' : ''}">${celdas[k]}</td>`).join('') + '</tr>';
   }).join('');
 }
@@ -402,6 +408,13 @@ function whatIf(id) {
     <div class="fila"><span class="mut">1:2</span><b class="pos">${px(q.o2)}</b></div>
     <div class="fila"><span class="mut">1:3</span><b class="pos">${px(q.o3)}</b></div>
     ${sl && (q.liq - sl) * (p.lado === 'long' ? 1 : -1) >= 0 ? '<div class="aviso neg">⚠ La liquidación queda antes del stop.</div>' : ''}
+    <h3 style="margin-top:16px">Con cada apalancamiento (mismo margen: ${usd(q.margen)})</h3>
+    <table style="font-size:13px"><tr><th>Apal.</th><th>Liquidación</th><th>Dist.</th><th>Ganancia ahora</th><th>En 1:2</th></tr>
+    ${LEVS().map(l => { const e = q.esc[l], d = Math.abs(p.precio - e.liq) / p.precio * 100, s2 = p.lado === 'long' ? 1 : -1,
+      muerto = (p.precio - e.liq) * s2 <= 0, m2 = q.o2 ? (q.o2 - p.entrada) / p.entrada * s2 * l : null;
+      return `<tr><td>${l}x</td><td class="${muerto ? 'neg' : ''}">${px(e.liq)}</td><td>${muerto ? '<span class="neg">liquidado</span>' : nf(d, 1) + ' %'}</td>
+      <td class="${cls(e.pct)}">${muerto ? '—' : sg(e.pct) + ' % · ' + sg(e.usd)}</td><td class="pos">${m2 != null ? sg(m2 * 100) + ' % · ' + sg(q.margen * m2) : '—'}</td></tr>`; }).join('')}</table>
+    <div class="aviso">"Mismo margen" = si hubieras puesto el mismo dinero con ese apalancamiento. Escribe los apalancamientos que quieras en el campo de la tabla (por ejemplo 2,3,5,10,25,50).</div>
     <div class="aviso">Esto es solo una simulación; no cambia nada en el exchange.</div>`;
 }
 function cerrarDetalle() { seleccion = null; $('#detalle').classList.remove('on'); }
@@ -498,6 +511,8 @@ $('#tabla').onclick = e => { const th = e.target.closest('th');
   if (th) { orden = {k: th.dataset.k, asc: orden.k === th.dataset.k ? !orden.asc : true}; lsSet('orden', orden); pintar(); return; }
   const tr = e.target.closest('tr[data-id]'); if (tr) abrirDetalle(tr.dataset.id); };
 ['#fCuenta', '#fOrigen', '#fMoneda', '#fEsc'].forEach(s => $(s).onchange = pintar);
+$('#fLevs').value = lsGet('levs', '2,3,5,10,25'); $('#fEsc').checked = lsGet('verEsc', false);
+$('#fLevs').onchange = () => { lsSet('levs', $('#fLevs').value); pintar(); }; $('#fEsc').addEventListener('change', () => lsSet('verEsc', $('#fEsc').checked));
 ['#dCuenta', '#dOrigen', '#dPeriodo'].forEach(s => $(s).onchange = pintarDiario);
 $('#dTabla').addEventListener('change', e => { const tr = e.target.closest('tr[data-t]'); if (tr) guardarNota(tr); });
 ['#cCap', '#cRiesgo', '#cLado', '#cEnt', '#cSL', '#cLev', '#cCuenta'].forEach(s => $(s).oninput = () => { if (s === '#cCap') $(s).dataset.tocado = 1; if (s === '#cCuenta') delete $('#cCap').dataset.tocado; calc(); });
