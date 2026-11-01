@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentinel · Posiciones</title>
+<style>
+:root{
+  --bg:#0B0F1A; --panel:#121828; --panel2:#182036; --line:#232c45; --txt:#F0F2F7; --mut:#969EAF;
+  --gold:#F5A623; --green:#2ECC71; --red:#E74C3C; --blue:#4DA3FF; --redbg:rgba(231,76,60,.14);
+  --bluebg:rgba(77,163,255,.12); --greenbg:rgba(46,204,113,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:rgba(11,15,26,.96);border-bottom:1px solid var(--line);padding:10px 16px}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{color:var(--gold);font-weight:800;letter-spacing:.5px}
+.live{display:inline-flex;align-items:center;gap:6px;color:var(--mut);font-size:12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.dot.off{background:var(--red);box-shadow:0 0 8px var(--red)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.kpi b{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--mut);font-size:12px}
+nav{display:flex;gap:4px;margin-top:10px;overflow-x:auto}
+nav button{background:none;border:1px solid transparent;color:var(--mut);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;font:inherit}
+nav button.on{background:var(--panel2);border-color:var(--line);color:var(--txt)}
+main{padding:12px 16px 40px}
+.sec{display:none}.sec.on{display:block}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+select,input{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit}
+input[type=number]{width:120px}
+label.chk{color:var(--mut);display:flex;gap:5px;align-items:center}
+.leyenda{display:flex;gap:14px;flex-wrap:wrap;color:var(--mut);font-size:12px;margin-left:auto}
+.leyenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:right}
+th{position:sticky;top:0;background:var(--panel2);color:var(--mut);font-weight:600;font-size:12px;cursor:pointer;user-select:none}
+th:hover{color:var(--txt)} th.izq,td.izq{text-align:left}
+th .ar{color:var(--gold)}
+tbody tr{cursor:pointer} tbody tr:hover td{background:rgba(255,255,255,.03)}
+tr.liq td{background:var(--redbg)} tr.liq td:first-child{box-shadow:inset 4px 0 var(--red)}
+tr.sinsl td{background:var(--bluebg)} tr.sinsl td:first-child{box-shadow:inset 4px 0 var(--blue)}
+tr.be td:first-child{box-shadow:inset 4px 0 var(--green)}
+.pos{color:var(--green)} .neg{color:var(--red)} .mut{color:var(--mut)} .azul{color:var(--blue)} .oro{color:var(--gold)}
+.tag{display:inline-block;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:700}
+.t-long{background:rgba(46,204,113,.15);color:var(--green)} .t-short{background:rgba(231,76,60,.15);color:var(--red)}
+.t-bot{background:rgba(245,166,35,.15);color:var(--gold)} .t-man{background:rgba(150,158,175,.15);color:var(--txt)}
+.t-be{background:rgba(46,204,113,.18);color:var(--green)} .t-sl{background:rgba(77,163,255,.18);color:var(--blue)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card h3{margin:0 0 10px;font-size:15px}
+.fila{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.fila:last-child{border:0}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;align-items:center}
+.form label{color:var(--mut);font-size:13px}
+.form input,.form select{width:100%}
+.barra{height:10px;background:var(--panel2);border-radius:6px;overflow:hidden;margin:6px 0}
+.barra>div{height:100%}
+#detalle{position:fixed;right:0;top:0;bottom:0;width:min(440px,100%);background:var(--panel);border-left:1px solid var(--line);
+  transform:translateX(100%);transition:.2s;z-index:9;overflow:auto;padding:16px}
+#detalle.on{transform:none}
+.x{float:right;background:none;border:0;color:var(--mut);font-size:22px;cursor:pointer}
+textarea{width:100%;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px;font:inherit}
+.btn{background:var(--gold);color:#111;border:0;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
+.aviso{color:var(--mut);font-size:12px;margin-top:8px}
+.vacio{padding:30px;text-align:center;color:var(--mut)}
+.err{color:var(--red);font-size:12px}
+td:first-child,th:first-child{position:sticky;left:0;z-index:1;background:var(--bg)} th:first-child{z-index:2;background:var(--panel2)}
+@media (max-width:700px){header{position:static}.kpis{grid-template-columns:1fr 1fr}.kpi b{font-size:15px}.leyenda{margin-left:0}main{padding:10px 10px 40px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <span class="brand">SENTINEL · POSICIONES</span>
+    <span class="live"><span class="dot" id="dot"></span><span id="estadoTxt">conectando…</span></span>
+    <span class="live" id="demoTag" style="display:none;color:var(--gold)">DATOS DE EJEMPLO</span>
+  </div>
+  <div class="kpis" id="kpis"></div>
+  <nav id="nav">
+    <button data-s="posiciones" class="on">Posiciones</button>
+    <button data-s="exposicion">Exposición</button>
+    <button data-s="calculadora">Calculadora</button>
+    <button data-s="diario">Diario</button>
+    <button data-s="fondeo">Fondeo</button>
+    <button data-s="cuentas">Cuentas y alertas</button>
+  </nav>
+</header>
+
+<main>
+<!-- POSICIONES -->
+<section class="sec on" id="s-posiciones">
+  <div class="filtros">
+    <select id="fCuenta"><option value="">Todas las cuentas</option></select>
+    <select id="fOrigen"><option value="">Bots y manuales</option><option value="bot">Solo bots</option><option value="manual">Solo manuales</option></select>
+    <select id="fMoneda"><option value="">Todas las monedas</option></select>
+    <label class="chk"><input type="checkbox" id="fEsc"> Ver liquidación a 2x · 3x · 5x · 10x</label>
+    <div class="leyenda">
+      <span><i style="background:var(--red)"></i>Cerca de liquidación</span>
+      <span><i style="background:var(--blue)"></i>Sin stop (riesgo hasta liquidación)</span>
+      <span><i style="background:var(--green)"></i>Llegó a 1R: mover a breakeven</span>
+    </div>
+  </div>
+  <div class="tw"><table id="tabla"><thead></thead><tbody></tbody></table></div>
+  <div class="aviso">Toca una fila para abrir la calculadora de esa posición. Las liquidaciones de los bots (simulados) y los escenarios son estimadas (margen aislado).</div>
+</section>
+
+<!-- EXPOSICIÓN -->
+<section class="sec" id="s-exposicion">
+  <div class="grid2" id="expo"></div>
+  <div class="aviso">Neto = longs − shorts en valor. "x cuenta" = cuántas veces tu equity total representa esa exposición.</div>
+</section>
+
+<!-- CALCULADORA -->
+<section class="sec" id="s-calculadora">
+  <div class="grid2">
+    <div class="card"><h3>Tamaño de posición</h3>
+      <div class="form">
+        <label>Cuenta</label><select id="cCuenta"></select>
+        <label>Capital (USDT)</label><input type="number" id="cCap" step="any">
+        <label>Riesgo por operación (%)</label><input type="number" id="cRiesgo" value="1" step="0.1">
+        <label>Lado</label><select id="cLado"><option value="long">Long</option><option value="short">Short</option></select>
+        <label>Entrada</label><input type="number" id="cEnt" step="any">
+        <label>Stop loss</label><input type="number" id="cSL" step="any">
+        <label>Apalancamiento</label><input type="number" id="cLev" value="3" step="1">
+      </div>
+    </div>
+    <div class="card"><h3>Resultado</h3><div id="cRes" class="mut">Llena entrada y stop.</div></div>
+  </div>
+</section>
+
+<!-- DIARIO -->
+<section class="sec" id="s-diario">
+  <div class="filtros">
+    <select id="dCuenta"><option value="">Todas las cuentas</option></select>
+    <select id="dOrigen"><option value="manual">Solo manuales</option><option value="">Bots y manuales</option><option value="bot">Solo bots</option></select>
+    <select id="dPeriodo"><option value="30">Últimos 30 días</option><option value="7">Últimos 7 días</option><option value="90">Últimos 90 días</option><option value="3650">Todo</option></select>
+  </div>
+  <div class="kpis" id="dKpis" style="margin-bottom:12px"></div>
+  <div class="grid2" id="dStats" style="margin-bottom:12px"></div>
+  <div class="tw"><table id="dTabla"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<!-- FONDEO -->
+<section class="sec" id="s-fondeo">
+  <div class="grid2">
+    <div class="card"><h3>Reglas de la cuenta de fondeo</h3>
+      <div class="form">
+        <label>Cuenta</label><select id="fdCuenta"></select>
+        <label>Balance inicial</label><input type="number" id="fdIni" step="any">
+        <label>Pérdida diaria máx. (%)</label><input type="number" id="fdDia" step="0.1">
+        <label>Drawdown total máx. (%)</label><input type="number" id="fdDD" step="0.1">
+        <label>Objetivo de ganancia (%)</label><input type="number" id="fdObj" step="0.1">
+        <label>Avisar al usar (%) del límite</label><input type="number" id="fdAviso" step="1">
+      </div>
+      <p><button class="btn" id="fdGuardar">Guardar reglas</button> <span id="fdMsg" class="mut"></span></p>
+      <div class="aviso">Pon aquí las reglas exactas de tu programa (HyroTrader u otro). El día se cuenta desde las 00:00 UTC; ajusta si tu programa usa otra hora.</div>
+    </div>
+    <div class="card"><h3>Estado en vivo</h3><div id="fdEstado" class="mut">Elige la cuenta de fondeo y guarda las reglas.</div></div>
+  </div>
+</section>
+
+<!-- CUENTAS Y ALERTAS -->
+<section class="sec" id="s-cuentas">
+  <div class="grid2">
+    <div class="card"><h3>Cuentas conectadas</h3><div id="ctas"></div></div>
+    <div class="card"><h3>Alertas a Telegram</h3>
+      <div class="form">
+        <label>Cerca de liquidación (distancia %)</label><input type="number" id="alLiq" step="0.5">
+        <label>Avisar al llegar a 1R (breakeven)</label><select id="alBE"><option value="1">Sí</option><option value="0">No</option></select>
+        <label>Avisar al llegar a 1:2</label><select id="alR2"><option value="1">Sí</option><option value="0">No</option></select>
+        <label>Avisar stop tocado / posición cerrada</label><select id="alCierre"><option value="1">Sí</option><option value="0">No</option></select>
+        <label>Funding alto (% cada 8 h)</label><input type="number" id="alFund" step="0.01">
+        <label>Incluir bots</label><select id="alBots"><option value="0">No (solo manuales)</option><option value="1">Sí</option></select>
+      </div>
+      <p><button class="btn" id="alGuardar">Guardar alertas</button> <span id="alMsg" class="mut"></span></p>
+    </div>
+  </div>
+</section>
+</main>
+
+<aside id="detalle"></aside>
+
+<script>
+// ------------------------------------------------------------------ utilidades
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const MMR = 0.005;  // margen de mantenimiento aproximado para estimar liquidaciones
+const nf = (v, d) => v == null || isNaN(v) ? '—' : Number(v).toLocaleString('es-CO', {minimumFractionDigits: d, maximumFractionDigits: d});
+const dec = p => p >= 1000 ? 1 : p >= 10 ? 2 : p >= 1 ? 3 : 5;
+const px = p => nf(p, dec(Math.abs(p || 0)));
+const usd = v => (v < 0 ? '−' : '') + '$' + nf(Math.abs(v), 2);
+const sg = v => (v > 0 ? '+' : v < 0 ? '−' : '') + nf(Math.abs(v), 2);
+const cls = v => v > 0 ? 'pos' : v < 0 ? 'neg' : '';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const lsGet = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch (e) { return d } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch (e) {} };
+
+function liqEst(entrada, lado, lev) {
+  return lado === 'long' ? entrada * (1 - 1 / lev + MMR) : entrada * (1 + 1 / lev - MMR);
+}
+
+// calcula todas las columnas derivadas de una posición
+function derivar(p, equityCuenta) {
+  const s = p.lado === 'long' ? 1 : -1;
+  const valor = p.cantidad * p.precio;
+  const margen = p.margen || (p.cantidad * p.entrada) / (p.apalancamiento || 1);
+  const pnl = (p.precio - p.entrada) * p.cantidad * s;
+  const liq = p.liquidacion || (p.apalancamiento ? liqEst(p.entrada, p.lado, p.apalancamiento) : null);
+  const distLiq = liq ? Math.abs(p.precio - liq) / p.precio * 100 : null;
+  const sinSL = !p.sl;
+  const ref = p.sl || liq;                         // sin stop: el riesgo va hasta la liquidación
+  const distR = ref ? Math.abs(p.entrada - ref) : null;
+  const riesgo = distR != null ? distR * p.cantidad : null;
+  const obj = k => distR ? p.entrada + s * k * distR : null;
+  const rActual = distR ? (p.precio - p.entrada) * s / distR : null;
+  const esc = {}; [2, 3, 5, 10].forEach(l => esc[l] = liqEst(p.entrada, p.lado, l));
+  return {...p, valor, margen, pnl, pnlPct: margen ? pnl / margen * 100 : 0, liq, distLiq, sinSL, riesgo,
+    riesgoPct: equityCuenta ? riesgo / equityCuenta * 100 : null, o1: obj(1), o2: obj(2), o3: obj(3), rActual, esc};
+}
+
+// ------------------------------------------------------------------ datos
+let D = null, DEMO = false, orden = lsGet('orden', {k: 'distLiq', asc: true}), seleccion = null;
+
+async function cargar() {
+  try {
+    if (new URLSearchParams(location.search).has('demo')) throw new Error('demo');
+    const r = await fetch('api/estado', {cache: 'no-store'});
+    if (r.status === 401) { location.href = 'login'; return; }
+    if (!r.ok) throw new Error(r.status);
+    D = await r.json(); DEMO = false;
+    $('#dot').classList.remove('off');
+    $('#estadoTxt').textContent = 'en vivo · ' + new Date(D.actualizado).toLocaleTimeString('es-CO');
+  } catch (e) {
+    if (!D || DEMO) { D = demo(D); DEMO = true; }
+    else { $('#dot').classList.add('off'); $('#estadoTxt').textContent = 'sin conexión, reintentando…'; }
+    if (DEMO) $('#estadoTxt').textContent = 'simulado · ' + new Date().toLocaleTimeString('es-CO');
+  }
+  $('#demoTag').style.display = DEMO ? '' : 'none';
+  pintar();
+}
+
+function equityDe(cuenta) { const c = D.cuentas.find(c => c.nombre === cuenta); return c ? c.equity : null; }
+function posiciones() { return D.posiciones.map(p => derivar(p, equityDe(p.cuenta))); }
+
+// ------------------------------------------------------------------ pintar
+function pintar() {
+  llenarSelects();
+  const P = posiciones(), eq = D.cuentas.reduce((a, c) => a + (c.equity || 0), 0);
+  const pnl = P.reduce((a, p) => a + p.pnl, 0), riesgo = P.filter(p => p.origen === 'manual').reduce((a, p) => a + (p.riesgo || 0), 0);
+  const margen = P.filter(p => p.origen === 'manual').reduce((a, p) => a + p.margen, 0);
+  const cerca = P.filter(p => p.distLiq != null && p.distLiq < D.alertas.liq_pct).length;
+  $('#kpis').innerHTML = [
+    ['Equity total (cuentas reales)', usd(eq), ''],
+    ['PnL flotante (todo)', usd(pnl), cls(pnl)],
+    ['Riesgo abierto (manuales)', usd(riesgo) + (eq ? ` · ${nf(riesgo / eq * 100, 1)} %` : ''), riesgo ? 'neg' : ''],
+    ['Margen usado (manuales)', usd(margen) + (eq ? ` · ${nf(margen / eq * 100, 1)} %` : ''), ''],
+    ['Posiciones abiertas', `${P.length} · ${P.filter(p => p.origen === 'bot').length} bots`, ''],
+    ['Cerca de liquidación', String(cerca), cerca ? 'neg' : 'pos'],
+  ].map(([t, v, c]) => `<div class="kpi"><span>${t}</span><b class="${c}">${v}</b></div>`).join('');
+  pintarTabla(P); pintarExpo(P, eq); calc(); pintarDiario(); pintarFondeo(); pintarCuentas();
+  if (seleccion) abrirDetalle(seleccion, true);
+}
+
+function llenarSelects() {
+  const ctas = D.cuentas.map(c => c.nombre).concat(['Bots (simulados)']);
+  for (const id of ['#fCuenta', '#dCuenta']) {
+    const s = $(id), v = s.value, base = s.options[0].outerHTML;
+    s.innerHTML = base + ctas.map(c => `<option>${esc(c)}</option>`).join(''); s.value = v;
+  }
+  const monedas = [...new Set(D.posiciones.map(p => p.moneda))].sort(), m = $('#fMoneda'), vm = m.value;
+  m.innerHTML = '<option value="">Todas las monedas</option>' + monedas.map(x => `<option>${x}</option>`).join(''); m.value = vm;
+  for (const id of ['#cCuenta', '#fdCuenta']) {
+    const s = $(id), v = s.value;
+    s.innerHTML = D.cuentas.map(c => `<option>${esc(c.nombre)}</option>`).join('');
+    if (v) s.value = v; else if (id === '#fdCuenta' && D.fondeo.cuenta) s.value = D.fondeo.cuenta;
+  }
+}
+
+const COLS = [
+  ['par', 'Par', 'izq'], ['lado', 'Lado', 'izq'], ['cuenta', 'Cuenta', 'izq'], ['origen', 'Origen', 'izq'],
+  ['cantidad', 'Cantidad'], ['valor', 'Valor'], ['entrada', 'Entrada prom.'], ['precio', 'Precio'],
+  ['pnl', 'PnL $'], ['pnlPct', 'PnL %'], ['apalancamiento', 'Apal.'], ['liq', 'Liquidación'], ['distLiq', 'Dist. liq.'],
+  ['esc2', 'Liq 2x', 'e'], ['esc3', 'Liq 3x', 'e'], ['esc5', 'Liq 5x', 'e'], ['esc10', 'Liq 10x', 'e'],
+  ['sl', 'Stop'], ['riesgo', 'Riesgo $'], ['riesgoPct', 'Riesgo % cta'], ['o1', '1:1'], ['o2', '1:2'], ['o3', '1:3'],
+  ['funding', 'Funding'], ['comisiones', 'Comisiones'],
+];
+
+function pintarTabla(P) {
+  const fc = $('#fCuenta').value, fo = $('#fOrigen').value, fm = $('#fMoneda').value, verEsc = $('#fEsc').checked;
+  let F = P.filter(p => (!fc || p.cuenta === fc) && (!fo || p.origen === fo) && (!fm || p.moneda === fm));
+  const val = (p, k) => k.startsWith('esc') ? p.esc[k.slice(3)] : p[k];
+  F.sort((a, b) => { let x = val(a, orden.k), y = val(b, orden.k);
+    if (x == null) return 1; if (y == null) return -1;
+    return (typeof x === 'string' ? x.localeCompare(y) : x - y) * (orden.asc ? 1 : -1); });
+  const cols = COLS.filter(c => verEsc || c[2] !== 'e');
+  $('#tabla thead').innerHTML = '<tr>' + cols.map(([k, t, c]) =>
+    `<th data-k="${k}" class="${c === 'izq' ? 'izq' : ''}">${t}${orden.k === k ? ` <span class="ar">${orden.asc ? '▲' : '▼'}</span>` : ''}</th>`).join('') + '</tr>';
+  if (!F.length) { $('#tabla tbody').innerHTML = `<tr><td colspan="${cols.length}" class="vacio">Sin posiciones abiertas con este filtro.</td></tr>`; return; }
+  $('#tabla tbody').innerHTML = F.map(p => {
+    const cerca = p.distLiq != null && p.distLiq < D.alertas.liq_pct;
+    const be = !cerca && p.rActual >= 1 && !p.sinSL;
+    const tr = cerca ? 'liq' : p.sinSL ? 'sinsl' : be ? 'be' : '';
+    const celdas = {
+      cuenta: esc(p.cuenta),
+      origen: p.origen === 'bot' ? `<span class="tag t-bot">BOT</span> <span class="mut">${esc(p.bot)}</span>` : '<span class="tag t-man">MANUAL</span>',
+      par: `<b>${esc(p.par)}</b>`, lado: `<span class="tag t-${p.lado}">${p.lado.toUpperCase()}</span>`,
+      cantidad: nf(p.cantidad, p.cantidad < 10 ? 4 : 2), valor: usd(p.valor), entrada: px(p.entrada), precio: px(p.precio),
+      pnl: `<span class="${cls(p.pnl)}">${sg(p.pnl)}</span>`, pnlPct: `<span class="${cls(p.pnl)}">${sg(p.pnlPct)} %</span>`,
+      apalancamiento: p.apalancamiento + 'x', liq: p.liq ? px(p.liq) + (p.liquidacion ? '' : ' <span class="mut">≈</span>') : '—',
+      distLiq: p.distLiq != null ? `<span class="${cerca ? 'neg' : ''}">${nf(p.distLiq, 1)} %</span>` : '—',
+      esc2: px(p.esc[2]), esc3: px(p.esc[3]), esc5: px(p.esc[5]), esc10: px(p.esc[10]),
+      sl: p.sl ? px(p.sl) : '<span class="tag t-sl">SIN STOP</span>',
+      riesgo: p.riesgo != null ? `<span class="${p.sinSL ? 'azul' : 'neg'}">${usd(p.riesgo)}</span>` : '—',
+      riesgoPct: p.riesgoPct != null ? `<span class="${p.sinSL ? 'azul' : ''}">${nf(p.riesgoPct, 2)} %</span>` : '<span class="mut">—</span>',
+      o1: (be ? '<span class="tag t-be">BE</span> ' : '') + px(p.o1), o2: px(p.o2), o3: px(p.o3),
+      funding: p.funding != null ? `<span class="${cls(p.funding)}">${sg(p.funding)}</span>` : '—',
+      comisiones: p.comisiones != null ? `<span class="neg">${usd(-Math.abs(p.comisiones))}</span>` : '—',
+    };
+    return `<tr class="${tr}" data-id="${esc(p.id)}">` + cols.map(([k, , c]) => `<td class="${c === 'izq' ? 'izq' : ''}">${celdas[k]}</td>`).join('') + '</tr>';
+  }).join('');
+}
+
+function pintarExpo(P, eq) {
+  const g = {};
+  P.forEach(p => { const m = g[p.moneda] ||= {long: 0, short: 0, botL: 0, botS: 0, manL: 0, manS: 0};
+    m[p.lado] += p.valor; m[(p.origen === 'bot' ? 'bot' : 'man') + (p.lado === 'long' ? 'L' : 'S')] += p.valor; });
+  const ks = Object.keys(g).sort();
+  $('#expo').innerHTML = ks.length ? ks.map(k => { const m = g[k], neto = m.long - m.short;
+    const conflicto = (m.botL && m.manS) || (m.botS && m.manL);
+    const tot = m.long + m.short || 1;
+    return `<div class="card"><h3>${k} <span class="${cls(neto)}" style="float:right">${neto >= 0 ? 'NETO LONG' : 'NETO SHORT'} ${usd(Math.abs(neto))}${eq ? ` · ${nf(Math.abs(neto) / eq, 2)}x cuenta` : ''}</span></h3>
+      <div class="barra"><div style="width:${m.long / tot * 100}%;background:var(--green);float:left"></div><div style="width:${m.short / tot * 100}%;background:var(--red);float:left"></div></div>
+      <div class="fila"><span class="mut">Longs</span><span class="pos">${usd(m.long)}</span></div>
+      <div class="fila"><span class="mut">Shorts</span><span class="neg">${usd(m.short)}</span></div>
+      <div class="fila"><span class="mut">Bots (L / S)</span><span>${usd(m.botL)} / ${usd(m.botS)}</span></div>
+      <div class="fila"><span class="mut">Manuales (L / S)</span><span>${usd(m.manL)} / ${usd(m.manS)}</span></div>
+      ${conflicto ? '<div class="aviso oro">⚠ Tus trades manuales van en sentido contrario a tus bots en esta moneda.</div>' : ''}</div>`; }).join('')
+    : '<div class="vacio">Sin posiciones abiertas.</div>';
+}
+
+function calc() {
+  const c = D.cuentas.find(c => c.nombre === $('#cCuenta').value);
+  if (c && !$('#cCap').dataset.tocado) $('#cCap').value = (c.equity || 0).toFixed(2);
+  const cap = +$('#cCap').value, r = +$('#cRiesgo').value / 100, e = +$('#cEnt').value, sl = +$('#cSL').value,
+    lev = Math.max(1, +$('#cLev').value || 1), lado = $('#cLado').value, s = lado === 'long' ? 1 : -1;
+  if (!e || !sl || !cap) { $('#cRes').innerHTML = 'Llena capital, entrada y stop.'; return; }
+  if ((e - sl) * s <= 0) { $('#cRes').innerHTML = `<span class="neg">El stop debe estar ${lado === 'long' ? 'debajo' : 'encima'} de la entrada en un ${lado}.</span>`; return; }
+  const dist = Math.abs(e - sl), riesgo = cap * r, qty = riesgo / dist, valor = qty * e, margen = valor / lev, liq = liqEst(e, lado, lev);
+  const liqAntes = (liq - sl) * s >= 0;
+  const levMin = Math.ceil(valor / cap * 10) / 10;
+  $('#cRes').innerHTML = `
+    <div class="fila"><span class="mut">Riesgo</span><b class="neg">${usd(riesgo)} (${nf(r * 100, 2)} %)</b></div>
+    <div class="fila"><span class="mut">Cantidad a comprar</span><b>${nf(qty, qty < 10 ? 4 : 2)}</b></div>
+    <div class="fila"><span class="mut">Valor de la posición</span><b>${usd(valor)}</b></div>
+    <div class="fila"><span class="mut">Margen a ${lev}x</span><b>${usd(margen)} · ${nf(margen / cap * 100, 1)} % de la cuenta</b></div>
+    <div class="fila"><span class="mut">Apalancamiento mínimo necesario</span><b>${nf(Math.max(1, levMin), 1)}x</b></div>
+    <div class="fila"><span class="mut">Liquidación a ${lev}x (aprox.)</span><b class="${liqAntes ? 'neg' : ''}">${px(liq)}</b></div>
+    ${liqAntes ? '<div class="aviso neg">⚠ Con ese apalancamiento te liquidan ANTES de tocar el stop. Baja el apalancamiento.</div>' : ''}
+    <div class="fila"><span class="mut">Distancia al stop</span><b>${nf(dist / e * 100, 2)} %</b></div>
+    <div class="fila"><span class="mut">Objetivo 1:1</span><b class="pos">${px(e + s * dist)} (+${usd(riesgo)})</b></div>
+    <div class="fila"><span class="mut">Objetivo 1:2</span><b class="pos">${px(e + s * 2 * dist)} (+${usd(2 * riesgo)})</b></div>
+    <div class="fila"><span class="mut">Objetivo 1:3</span><b class="pos">${px(e + s * 3 * dist)} (+${usd(3 * riesgo)})</b></div>`;
+}
+
+function abrirDetalle(id, refrescar) {
+  const p = posiciones().find(x => x.id === id); if (!p) { cerrarDetalle(); return; }
+  seleccion = id;
+  const el = $('#detalle'), lev0 = refrescar ? (+$('#dLev')?.value || p.apalancamiento) : p.apalancamiento;
+  const sl0 = refrescar ? ($('#dSL')?.value ?? (p.sl || '')) : (p.sl || '');
+  if (!refrescar || !el.classList.contains('on')) {
+    el.innerHTML = `<button class="x" onclick="cerrarDetalle()">×</button>
+      <h3 style="margin-top:4px">${esc(p.par)} <span class="tag t-${p.lado}">${p.lado.toUpperCase()}</span></h3>
+      <div class="mut" style="margin-bottom:10px">${esc(p.cuenta)}${p.bot ? ' · ' + esc(p.bot) : ''}</div>
+      <div id="dFijo"></div>
+      <h3 style="margin-top:16px">¿Y si…?</h3>
+      <div class="form"><label>Apalancamiento</label><input type="number" id="dLev" value="${lev0}">
+      <label>Stop loss</label><input type="number" id="dSL" step="any" value="${sl0}" placeholder="sin stop"></div>
+      <div id="dWhat" style="margin-top:10px"></div>`;
+    $('#dLev').oninput = $('#dSL').oninput = () => whatIf(p.id);
+    el.classList.add('on');
+  }
+  $('#dFijo').innerHTML = `
+    <div class="fila"><span class="mut">Entrada promedio</span><b>${px(p.entrada)}</b></div>
+    <div class="fila"><span class="mut">Precio</span><b>${px(p.precio)}</b></div>
+    <div class="fila"><span class="mut">PnL</span><b class="${cls(p.pnl)}">${sg(p.pnl)} (${sg(p.pnlPct)} %)</b></div>
+    <div class="fila"><span class="mut">R actual</span><b class="${cls(p.rActual)}">${p.rActual != null ? sg(p.rActual) + ' R' : '—'}</b></div>
+    <div class="fila"><span class="mut">Abierta</span><b>${new Date(p.abierta).toLocaleString('es-CO')}</b></div>`;
+  whatIf(id);
+}
+function whatIf(id) {
+  const p = D.posiciones.find(x => x.id === id); if (!p) return;
+  const lev = Math.max(1, +$('#dLev').value || p.apalancamiento), sl = +$('#dSL').value || null;
+  const q = derivar({...p, apalancamiento: lev, liquidacion: lev === p.apalancamiento ? p.liquidacion : null, sl,
+    margen: lev === p.apalancamiento ? p.margen : null}, equityDe(p.cuenta));
+  $('#dWhat').innerHTML = `
+    <div class="fila"><span class="mut">Liquidación</span><b>${px(q.liq)} · a ${nf(q.distLiq, 1)} %</b></div>
+    <div class="fila"><span class="mut">Margen</span><b>${usd(q.margen)}</b></div>
+    <div class="fila"><span class="mut">Riesgo ${q.sinSL ? '(hasta liquidación)' : ''}</span><b class="${q.sinSL ? 'azul' : 'neg'}">${usd(q.riesgo)}${q.riesgoPct != null ? ' · ' + nf(q.riesgoPct, 2) + ' % cta' : ''}</b></div>
+    <div class="fila"><span class="mut">1:1</span><b class="pos">${px(q.o1)}</b></div>
+    <div class="fila"><span class="mut">1:2</span><b class="pos">${px(q.o2)}</b></div>
+    <div class="fila"><span class="mut">1:3</span><b class="pos">${px(q.o3)}</b></div>
+    ${sl && (q.liq - sl) * (p.lado === 'long' ? 1 : -1) >= 0 ? '<div class="aviso neg">⚠ La liquidación queda antes del stop.</div>' : ''}
+    <div class="aviso">Esto es solo una simulación; no cambia nada en el exchange.</div>`;
+}
+function cerrarDetalle() { seleccion = null; $('#detalle').classList.remove('on'); }
+
+// ------------------------------------------------------------------ diario
+function pintarDiario() {
+  const fc = $('#dCuenta').value, fo = $('#dOrigen').value, dias = +$('#dPeriodo').value, lim = Date.now() - dias * 864e5;
+  const C = D.cerradas.filter(t => (!fc || t.cuenta === fc) && (!fo || t.origen === fo) && new Date(t.cerrada) >= lim)
+    .sort((a, b) => new Date(b.cerrada) - new Date(a.cerrada));
+  const g = C.filter(t => t.pnl > 0), p = C.filter(t => t.pnl <= 0);
+  const sumG = g.reduce((a, t) => a + t.pnl, 0), sumP = -p.reduce((a, t) => a + t.pnl, 0);
+  const conR = C.filter(t => t.r != null), rProm = conR.length ? conR.reduce((a, t) => a + t.r, 0) / conR.length : null;
+  const pf = sumP ? sumG / sumP : null, neto = sumG - sumP;
+  $('#dKpis').innerHTML = [
+    ['Operaciones', C.length, ''], ['% de acierto', C.length ? nf(g.length / C.length * 100, 1) + ' %' : '—', ''],
+    ['Resultado neto', usd(neto), cls(neto)], ['Profit factor', pf ? nf(pf, 2) : '—', pf >= 1 ? 'pos' : pf ? 'neg' : ''],
+    ['R promedio', rProm != null ? sg(rProm) + ' R' : '—', cls(rProm)],
+    ['Ganancia media / pérdida media', g.length && p.length ? `${usd(sumG / g.length)} / ${usd(-sumP / p.length)}` : '—', ''],
+  ].map(([t, v, c]) => `<div class="kpi"><span>${t}</span><b class="${c}">${v}</b></div>`).join('');
+  const grupo = (fn, nombre) => { const m = {}; C.forEach(t => { const k = fn(t); (m[k] ||= []).push(t); });
+    const filas = Object.entries(m).map(([k, v]) => [k, v.length, v.filter(t => t.pnl > 0).length, v.reduce((a, t) => a + t.pnl, 0)])
+      .sort((a, b) => b[3] - a[3]);
+    return `<div class="card"><h3>${nombre}</h3>${filas.length ? filas.map(([k, n, w, s]) =>
+      `<div class="fila"><span>${esc(k)} <span class="mut">· ${n} ops · ${nf(w / n * 100, 0)} %</span></span><b class="${cls(s)}">${usd(s)}</b></div>`).join('') : '<span class="mut">Sin datos.</span>'}</div>`; };
+  const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  $('#dStats').innerHTML = grupo(t => t.par, 'Por par') + grupo(t => DIAS[new Date(t.cerrada).getDay()], 'Por día de la semana')
+    + grupo(t => { const h = new Date(t.abierta).getHours(); return `${String(h).padStart(2, '0')}:00–${String(h).padStart(2, '0')}:59`; }, 'Por hora de entrada')
+    + grupo(t => t.emocion || 'Sin etiqueta', 'Por estado emocional');
+  $('#dTabla thead').innerHTML = '<tr><th class="izq">Cerrada</th><th class="izq">Cuenta</th><th class="izq">Par</th><th class="izq">Lado</th><th>Entrada</th><th>Salida</th><th>PnL $</th><th>PnL %</th><th>R</th><th>Duración</th><th class="izq">Cómo me sentí</th><th class="izq">Nota</th></tr>';
+  const EMO = ['', 'Tranquilo', 'Seguí el plan', 'Miedo', 'FOMO', 'Venganza', 'Ansioso', 'Impulsivo'];
+  $('#dTabla tbody').innerHTML = C.length ? C.slice(0, 300).map(t => {
+    const dur = (new Date(t.cerrada) - new Date(t.abierta)) / 6e4, durTxt = dur > 1440 ? nf(dur / 1440, 1) + ' d' : dur > 60 ? nf(dur / 60, 1) + ' h' : nf(dur, 0) + ' min';
+    return `<tr data-t="${esc(t.id)}"><td class="izq">${new Date(t.cerrada).toLocaleString('es-CO', {dateStyle: 'short', timeStyle: 'short'})}</td>
+    <td class="izq">${esc(t.cuenta)}</td><td class="izq"><b>${esc(t.par)}</b></td><td class="izq"><span class="tag t-${t.lado}">${t.lado.toUpperCase()}</span></td>
+    <td>${px(t.entrada)}</td><td>${px(t.salida)}</td><td class="${cls(t.pnl)}">${sg(t.pnl)}</td><td class="${cls(t.pnl)}">${sg(t.pnl_pct)} %</td>
+    <td>${t.r != null ? sg(t.r) : '—'}</td><td>${durTxt}</td>
+    <td class="izq"><select class="emo">${EMO.map(e => `<option ${e === (t.emocion || '') ? 'selected' : ''}>${e}</option>`).join('')}</select></td>
+    <td class="izq"><input class="nota" value="${esc(t.nota || '')}" placeholder="¿Qué aprendí?" style="width:220px"></td></tr>`; }).join('')
+    : '<tr><td colspan="12" class="vacio">Sin operaciones cerradas en este periodo.</td></tr>';
+}
+async function guardarNota(tr) {
+  const id = tr.dataset.t, t = D.cerradas.find(x => x.id === id); if (!t) return;
+  t.emocion = tr.querySelector('.emo').value; t.nota = tr.querySelector('.nota').value;
+  if (!DEMO) await fetch('api/nota', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id, emocion: t.emocion, nota: t.nota})});
+  pintarDiario();
+}
+
+// ------------------------------------------------------------------ fondeo
+function pintarFondeo() {
+  const f = D.fondeo;
+  for (const [id, k] of [['#fdIni', 'balance_inicial'], ['#fdDia', 'perdida_diaria_pct'], ['#fdDD', 'drawdown_total_pct'], ['#fdObj', 'objetivo_pct'], ['#fdAviso', 'aviso_pct']])
+    if (document.activeElement !== $(id) && !$(id).dataset.tocado) $(id).value = f[k] ?? '';
+  const c = D.cuentas.find(c => c.nombre === (f.cuenta || $('#fdCuenta').value));
+  if (!c || !f.balance_inicial) { $('#fdEstado').innerHTML = 'Elige la cuenta de fondeo y guarda las reglas.'; return; }
+  const eq = c.equity, ini = f.balance_inicial, inicioDia = c.equity_inicio_dia ?? ini;
+  const perdDia = Math.max(0, inicioDia - eq), limDia = ini * f.perdida_diaria_pct / 100;
+  const dd = Math.max(0, ini - eq), limDD = ini * f.drawdown_total_pct / 100, gan = eq - ini, obj = ini * (f.objetivo_pct || 0) / 100;
+  const barra = (usado, lim, color) => { const pct = Math.min(100, lim ? usado / lim * 100 : 0);
+    return `<div class="barra"><div style="width:${pct}%;background:${pct >= (f.aviso_pct || 70) ? 'var(--red)' : color}"></div></div>`; };
+  $('#fdEstado').innerHTML = `
+    <div class="fila"><span class="mut">Cuenta</span><b>${esc(c.nombre)}</b></div>
+    <div class="fila"><span class="mut">Equity actual</span><b>${usd(eq)}</b></div>
+    <div class="fila"><span class="mut">Pérdida de hoy</span><b class="${perdDia ? 'neg' : ''}">${usd(perdDia)} de ${usd(limDia)}</b></div>${barra(perdDia, limDia, 'var(--gold)')}
+    <div class="fila"><span class="mut">Te quedan hoy</span><b>${usd(Math.max(0, limDia - perdDia))}</b></div>
+    <div class="fila"><span class="mut">Drawdown total</span><b class="${dd ? 'neg' : ''}">${usd(dd)} de ${usd(limDD)}</b></div>${barra(dd, limDD, 'var(--gold)')}
+    <div class="fila"><span class="mut">Te quedan en total</span><b>${usd(Math.max(0, limDD - dd))}</b></div>
+    ${obj ? `<div class="fila"><span class="mut">Objetivo de ganancia</span><b class="${cls(gan)}">${usd(gan)} de ${usd(obj)}</b></div><div class="barra"><div style="width:${Math.max(0, Math.min(100, gan / obj * 100))}%;background:var(--green)"></div></div>` : ''}
+    <div class="aviso">Incluye el PnL flotante: si cierras todo ahora, este sería el resultado.</div>`;
+}
+
+function pintarCuentas() {
+  $('#ctas').innerHTML = D.cuentas.map(c => `<div class="fila"><span><b>${esc(c.nombre)}</b> <span class="mut">· ${esc(c.exchange)}</span>
+    ${c.estado !== 'ok' ? `<div class="err">${esc(c.error || 'sin conexión')}</div>` : ''}</span>
+    <span class="${c.estado === 'ok' ? 'pos' : 'neg'}">${c.estado === 'ok' ? usd(c.equity) : 'ERROR'}</span></div>`).join('')
+    + '<div class="aviso">Para agregar o quitar cuentas, vuelve a correr el instalador en el VPS.</div>';
+  const a = D.alertas;
+  for (const [id, k] of [['#alLiq', 'liq_pct'], ['#alBE', 'be'], ['#alR2', 'r2'], ['#alCierre', 'cierre'], ['#alFund', 'funding_pct'], ['#alBots', 'bots']])
+    if (document.activeElement !== $(id) && !$(id).dataset.tocado) $(id).value = typeof a[k] === 'boolean' ? (a[k] ? 1 : 0) : a[k];
+}
+
+async function guardar(url, datos, msg) {
+  if (!DEMO) { const r = await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(datos)});
+    $(msg).textContent = r.ok ? 'Guardado ✓' : 'Error al guardar'; }
+  else $(msg).textContent = 'Guardado (simulado)';
+  setTimeout(() => $(msg).textContent = '', 2500);
+}
+
+// ------------------------------------------------------------------ eventos
+$('#nav').onclick = e => { const b = e.target.closest('button'); if (!b) return;
+  $$('#nav button').forEach(x => x.classList.toggle('on', x === b));
+  $$('.sec').forEach(s => s.classList.toggle('on', s.id === 's-' + b.dataset.s)); lsSet('tab', b.dataset.s); };
+const tab = lsGet('tab', null); if (tab) $(`#nav button[data-s="${tab}"]`)?.click();
+$('#tabla').onclick = e => { const th = e.target.closest('th');
+  if (th) { orden = {k: th.dataset.k, asc: orden.k === th.dataset.k ? !orden.asc : true}; lsSet('orden', orden); pintar(); return; }
+  const tr = e.target.closest('tr[data-id]'); if (tr) abrirDetalle(tr.dataset.id); };
+['#fCuenta', '#fOrigen', '#fMoneda', '#fEsc'].forEach(s => $(s).onchange = pintar);
+['#dCuenta', '#dOrigen', '#dPeriodo'].forEach(s => $(s).onchange = pintarDiario);
+$('#dTabla').addEventListener('change', e => { const tr = e.target.closest('tr[data-t]'); if (tr) guardarNota(tr); });
+['#cCap', '#cRiesgo', '#cLado', '#cEnt', '#cSL', '#cLev', '#cCuenta'].forEach(s => $(s).oninput = () => { if (s === '#cCap') $(s).dataset.tocado = 1; if (s === '#cCuenta') delete $('#cCap').dataset.tocado; calc(); });
+$$('#s-fondeo input, #s-cuentas input, #s-cuentas select').forEach(i => i.addEventListener('input', () => i.dataset.tocado = 1));
+$('#fdGuardar').onclick = () => { const f = {cuenta: $('#fdCuenta').value, balance_inicial: +$('#fdIni').value, perdida_diaria_pct: +$('#fdDia').value,
+  drawdown_total_pct: +$('#fdDD').value, objetivo_pct: +$('#fdObj').value, aviso_pct: +$('#fdAviso').value};
+  Object.assign(D.fondeo, f); $$('#s-fondeo input').forEach(i => delete i.dataset.tocado); guardar('api/fondeo', f, '#fdMsg'); pintarFondeo(); };
+$('#alGuardar').onclick = () => { const a = {liq_pct: +$('#alLiq').value, be: $('#alBE').value === '1', r2: $('#alR2').value === '1',
+  cierre: $('#alCierre').value === '1', funding_pct: +$('#alFund').value, bots: $('#alBots').value === '1'};
+  Object.assign(D.alertas, a); $$('#s-cuentas input, #s-cuentas select').forEach(i => delete i.dataset.tocado); guardar('api/alertas', a, '#alMsg'); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarDetalle(); });
+
+// ------------------------------------------------------------------ datos de ejemplo (?demo=1 o sin servidor)
+function demo(prev) {
+  if (prev) { prev.posiciones.forEach(p => { p.precio *= 1 + (Math.random() - .5) * 0.0016; }); prev.actualizado = new Date().toISOString(); return prev; }
+  const ahora = Date.now(), h = n => new Date(ahora - n * 3600e3).toISOString();
+  const P = (id, cuenta, origen, bot, par, lado, cantidad, entrada, precio, lev, sl, liq, funding, comis, hrs) =>
+    ({id, cuenta, origen, bot, par, moneda: par.split('/')[0], lado, cantidad, entrada, precio, apalancamiento: lev, sl, liquidacion: liq, funding, comisiones: comis, abierta: h(hrs)});
+  const C = (i, cuenta, origen, par, lado, entrada, salida, qty, r, emo, dias, durH) => { const s = lado === 'long' ? 1 : -1, pnl = (salida - entrada) * qty * s;
+    return {id: 'c' + i, cuenta, origen, par, lado, entrada, salida, pnl, pnl_pct: pnl / (entrada * qty / 3) * 100, r, emocion: emo, nota: '',
+      abierta: new Date(ahora - dias * 864e5 - durH * 3600e3).toISOString(), cerrada: new Date(ahora - dias * 864e5).toISOString()}; };
+  return {
+    actualizado: new Date().toISOString(),
+    cuentas: [
+      {nombre: 'Binance Principal', exchange: 'binance', equity: 4820.55, equity_inicio_dia: 4890, estado: 'ok'},
+      {nombre: 'Binance 2', exchange: 'binance', equity: 1250.10, estado: 'ok'},
+      {nombre: 'Binance Fondeo', exchange: 'binance', equity: 9640.00, equity_inicio_dia: 9810, estado: 'ok'},
+      {nombre: 'Bybit', exchange: 'bybit', equity: 2310.80, estado: 'ok'},
+      {nombre: 'Bitunix 1', exchange: 'bitunix', equity: 640.25, estado: 'ok'},
+      {nombre: 'Pionex', exchange: 'pionex', equity: 980.00, estado: 'error', error: 'Llave sin permiso de lectura de futuros'},
+    ],
+    posiciones: [
+      P('m1', 'Binance Principal', 'manual', null, 'BTC/USDT', 'long', 0.045, 76420, 77180, 5, 75100, 61520, -1.82, 2.06, 20),
+      P('m2', 'Binance Principal', 'manual', null, 'SOL/USDT', 'short', 18, 186.4, 189.9, 10, null, 204.1, 0.44, 1.34, 6),
+      P('m3', 'Bybit', 'manual', null, 'ETH/USDT', 'short', 0.9, 2310, 2228, 3, 2380, 3054, 0.95, 1.04, 30),
+      P('m4', 'Binance Fondeo', 'manual', null, 'BTC/USDT', 'short', 0.06, 77950, 77180, 20, 78700, 81460, 0.31, 2.8, 3),
+      P('m5', 'Bitunix 1', 'manual', null, 'XRP/USDT', 'long', 900, 2.412, 2.318, 15, null, 2.270, -0.6, 0.87, 14),
+      P('b1', 'Bots (simulados)', 'bot', 'BTC 15m Short', 'BTC/USDT', 'short', 0.0072, 78310, 77180, 2, 85750, null, null, null, 40),
+      P('b2', 'Bots (simulados)', 'bot', 'SOL 15m Long', 'SOL/USDT', 'long', 3.1, 191.2, 189.9, 2, 173.3, null, null, null, 9),
+      P('b3', 'Bots (simulados)', 'bot', 'ETH 15m Long', 'ETH/USDT', 'long', 0.25, 2265, 2228, 2, 1930, null, null, null, 18),
+    ],
+    cerradas: [
+      C(1, 'Binance Principal', 'manual', 'BTC/USDT', 'long', 75200, 77100, 0.04, 1.9, 'Seguí el plan', 1, 11), C(2, 'Bybit', 'manual', 'ETH/USDT', 'short', 2390, 2440, 0.8, -1, 'FOMO', 2, 3),
+      C(3, 'Binance Principal', 'manual', 'SOL/USDT', 'long', 182, 191.5, 15, 2.4, 'Tranquilo', 3, 26), C(4, 'Binance 2', 'manual', 'BTC/USDT', 'short', 78800, 79400, 0.03, -1, 'Venganza', 3, 1),
+      C(5, 'Binance Fondeo', 'manual', 'BTC/USDT', 'long', 74900, 76350, 0.05, 1.5, 'Seguí el plan', 5, 8), C(6, 'Bitunix 1', 'manual', 'XRP/USDT', 'long', 2.31, 2.25, 800, -0.8, 'Impulsivo', 6, 2),
+      C(7, 'Bybit', 'manual', 'ETH/USDT', 'long', 2180, 2290, 0.7, 2.2, 'Seguí el plan', 8, 30), C(8, 'Binance Principal', 'manual', 'SOL/USDT', 'short', 195, 188, 12, 1.4, 'Tranquilo', 9, 5),
+      C(9, 'Bots (simulados)', 'bot', 'BTC/USDT', 'short', 80797, 76200, 0.007, null, '', 1, 70),
+    ],
+    fondeo: {cuenta: 'Binance Fondeo', balance_inicial: 10000, perdida_diaria_pct: 4, drawdown_total_pct: 8, objetivo_pct: 10, aviso_pct: 70},
+    alertas: {liq_pct: 8, be: true, r2: true, cierre: true, funding_pct: 0.05, bots: false},
+  };
+}
+
+cargar(); setInterval(cargar, 2000);
+</script>
+</body>
+</html>
