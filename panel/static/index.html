@@ -132,6 +132,23 @@ tr.liq td:first-child{background:#2a1820} tr.sinsl td:first-child{background:#11
     </div>
     <div class="card"><h3>Resultado</h3><div id="cRes" class="mut">Llena entrada y stop.</div></div>
   </div>
+  <div class="grid2" style="margin-top:12px">
+    <div class="card"><h3>Por ganancia objetivo (scalping)</h3>
+      <div class="form">
+        <label>Ganancia que quiero (USDT, neta)</label><input type="number" id="gObj" value="60" step="any">
+        <label>Lado</label><select id="gLado"><option value="long">Long</option><option value="short">Short</option></select>
+        <label>Entrada</label><input type="number" id="gEnt" step="any">
+        <label>Take profit (precio)</label><input type="number" id="gTP" step="any" placeholder="o usa el % de abajo">
+        <label>…o movimiento esperado (%)</label><input type="number" id="gMov" step="any" placeholder="ej. 0,8">
+        <label>Stop loss (opcional)</label><input type="number" id="gSL" step="any">
+        <label>Comisión por lado (%)</label><input type="number" id="gFee" value="0.05" step="0.01">
+        <label>Margen máximo que quiero usar (USDT)</label><input type="number" id="gMarg" step="any" placeholder="opcional">
+        <label>Apalancamientos a comparar</label><input id="gLevs" value="5,10,20,25,50">
+      </div>
+      <div class="aviso">Comisión típica de futuros con orden a mercado: Binance 0,05 %, Bybit 0,055 %. Con órdenes límite es menos.</div>
+    </div>
+    <div class="card"><h3>Lo que tienes que abrir</h3><div id="gRes" class="mut">Pon la ganancia, la entrada y el take profit (o el %).</div></div>
+  </div>
 </section>
 
 <!-- DIARIO -->
@@ -370,6 +387,36 @@ function calc() {
     <div class="fila"><span class="mut">Objetivo 1:3</span><b class="pos">${px(e + s * 3 * dist)} (+${usd(3 * riesgo)})</b></div>`;
 }
 
+function calcObjetivo() {
+  const G = +$('#gObj').value, e = +$('#gEnt').value, lado = $('#gLado').value, sgn = lado === 'long' ? 1 : -1;
+  const fee = (+$('#gFee').value || 0) / 100, sl = +$('#gSL').value || null, margMax = +$('#gMarg').value || null;
+  let tp = +$('#gTP').value; if (!tp && +$('#gMov').value && e) tp = e * (1 + sgn * +$('#gMov').value / 100);
+  if (!G || !e || !tp) { $('#gRes').innerHTML = 'Pon la ganancia, la entrada y el take profit (o el %).'; return; }
+  if ((tp - e) * sgn <= 0) { $('#gRes').innerHTML = `<span class="neg">En un ${lado} el take profit debe estar ${lado === 'long' ? 'arriba' : 'abajo'} de la entrada.</span>`; return; }
+  if (sl && (e - sl) * sgn <= 0) { $('#gRes').innerHTML = `<span class="neg">En un ${lado} el stop debe estar ${lado === 'long' ? 'abajo' : 'arriba'} de la entrada.</span>`; return; }
+  const neto = Math.abs(tp - e) - fee * (e + tp);           // ganancia neta por moneda, ya restadas las comisiones de entrada y salida
+  if (neto <= 0) { $('#gRes').innerHTML = '<span class="neg">Ese movimiento no alcanza ni para pagar las comisiones. Necesitas un take profit más lejos.</span>'; return; }
+  const qty = G / neto, valor = qty * e, mov = Math.abs(tp - e) / e * 100, comis = fee * qty * (e + tp);
+  const perd = sl ? (Math.abs(e - sl) + fee * (e + sl)) * qty : null;
+  const levs = [...new Set(($('#gLevs').value || '').split(/[^0-9.]+/).map(Number).filter(x => x >= 1 && x <= 200))].sort((a, b) => a - b);
+  const levMin = margMax ? Math.ceil(valor / margMax * 10) / 10 : null;
+  const filas = levs.map(l => { const m = valor / l, liq = liqEst(e, lado, l), dl = Math.abs(e - liq) / e * 100;
+    const liqAntes = sl ? (liq - sl) * sgn >= 0 : false, pasa = margMax ? m <= margMax : true;
+    return `<tr><td>${l}x</td><td>${usd(m)}</td><td>${px(liq)}</td><td>${nf(dl, 2)} %</td><td class="pos">${sg(G / m * 100)} %</td>
+      <td>${liqAntes ? '<span class="neg">liquida antes del stop</span>' : !pasa ? '<span class="mut">pasa tu margen</span>' : '<span class="pos">OK</span>'}</td></tr>`; }).join('');
+  $('#gRes').innerHTML = `
+    <div class="fila"><span class="mut">Cantidad a abrir</span><b>${nf(qty, qty < 10 ? 4 : 2)} ${esc(lado === 'long' ? 'monedas' : 'monedas')}</b></div>
+    <div class="fila"><span class="mut">Valor de la posición (USDT)</span><b>${usd(valor)}</b></div>
+    <div class="fila"><span class="mut">Movimiento necesario</span><b>${nf(mov, 2)} % hasta ${px(tp)}</b></div>
+    <div class="fila"><span class="mut">Comisiones (entrada + salida)</span><b class="neg">${usd(-comis)}</b></div>
+    <div class="fila"><span class="mut">Ganancia neta en el take profit</span><b class="pos">${usd(G)}</b></div>
+    ${perd != null ? `<div class="fila"><span class="mut">Pérdida si toca el stop</span><b class="neg">${usd(-perd)}</b></div>
+    <div class="fila"><span class="mut">Relación riesgo : beneficio</span><b>1 : ${nf(G / perd, 2)}</b></div>` : ''}
+    ${levMin ? `<div class="fila"><span class="mut">Apalancamiento mínimo con tu margen</span><b class="oro">${nf(Math.max(1, levMin), 1)}x</b></div>` : ''}
+    <table style="margin-top:10px;font-size:13px"><tr><th>Apal.</th><th>Margen</th><th>Liquidación</th><th>Dist. liq.</th><th>Retorno</th><th></th></tr>${filas}</table>
+    <div class="aviso">El margen es lo que sale de tu cuenta; la cantidad y el valor de la posición son los mismos con cualquier apalancamiento. Más apalancamiento = menos margen, pero la liquidación queda más cerca.</div>`;
+}
+
 function abrirDetalle(id, refrescar) {
   const p = posiciones().find(x => x.id === id); if (!p) { cerrarDetalle(); return; }
   seleccion = id;
@@ -516,6 +563,7 @@ $('#fLevs').onchange = () => { lsSet('levs', $('#fLevs').value); pintar(); }; $(
 ['#dCuenta', '#dOrigen', '#dPeriodo'].forEach(s => $(s).onchange = pintarDiario);
 $('#dTabla').addEventListener('change', e => { const tr = e.target.closest('tr[data-t]'); if (tr) guardarNota(tr); });
 ['#cCap', '#cRiesgo', '#cLado', '#cEnt', '#cSL', '#cLev', '#cCuenta'].forEach(s => $(s).oninput = () => { if (s === '#cCap') $(s).dataset.tocado = 1; if (s === '#cCuenta') delete $('#cCap').dataset.tocado; calc(); });
+['#gObj', '#gLado', '#gEnt', '#gTP', '#gMov', '#gSL', '#gFee', '#gMarg', '#gLevs'].forEach(x => $(x).oninput = calcObjetivo);
 $$('#s-fondeo input, #s-cuentas input, #s-cuentas select').forEach(i => i.addEventListener('input', () => i.dataset.tocado = 1));
 $('#fdGuardar').onclick = () => { const f = {cuenta: $('#fdCuenta').value, balance_inicial: +$('#fdIni').value, perdida_diaria_pct: +$('#fdDia').value,
   drawdown_total_pct: +$('#fdDD').value, objetivo_pct: +$('#fdObj').value, aviso_pct: +$('#fdAviso').value};
