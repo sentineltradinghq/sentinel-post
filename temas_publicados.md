@@ -13,3 +13,4 @@
 - 2026-10-31 pm — Transparencia de Sentinel: cada cierre (ganado o perdido) se publica en Discord y resumen semanal los domingos; anuncio del primer resumen
 - 2026-11-01 am — Relación riesgo/beneficio (R:B) y tasa de acierto mínima (1:1=50%, 1:2=33%, 1:3=25%; fallar 6 de 10 y ganar)
 - 2026-11-01 pm — Primer resumen semanal de los bots (26 oct–1 nov): 3 operaciones, 2 ganadas, 1 perdida; mejor ETH 15m Short +18,04 %, peor ETH 15m Long −15,47 % (carrusel 5 imágenes + Reel en video)
+- 2026-11-02 am — Operar por venganza (revenge trading): la espiral pérdida→rabia→más tamaño→más pérdida y 4 reglas para cortarla
