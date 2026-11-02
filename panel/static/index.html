@@ -274,7 +274,7 @@ function pintar() {
   const margen = P.filter(p => p.origen === 'manual').reduce((a, p) => a + p.margen, 0);
   const cerca = P.filter(p => p.distLiq != null && p.distLiq < D.alertas.liq_pct).length;
   $('#kpis').innerHTML = [
-    ['Equity total (cuentas reales)', usd(eq), ''],
+    ['Total de las cuentas (todas las billeteras)', usd(eq), ''],
     ['PnL flotante (todo)', usd(pnl), cls(pnl)],
     ['Riesgo abierto (manuales)', usd(riesgo) + (eq ? ` · ${nf(riesgo / eq * 100, 1)} %` : ''), riesgo ? 'neg' : ''],
     ['Margen usado (manuales)', usd(margen) + (eq ? ` · ${nf(margen / eq * 100, 1)} %` : ''), ''],
@@ -534,6 +534,7 @@ function pintarFondeo() {
 
 function pintarCuentas() {
   $('#ctas').innerHTML = D.cuentas.map(c => `<div class="fila"><span><b>${esc(c.nombre)}</b> <span class="mut">· ${esc(c.exchange)}</span>
+    ${c.billeteras ? `<div style="font-size:12px">${Object.entries(c.billeteras).map(([k, v]) => `${esc(k)} ${usd(v)}`).join(' · ')}</div>` : ''}
     ${c.activos ? `<div class="mut" style="font-size:12px">${Object.entries(c.activos).map(([k, v]) => `${esc(k)} ${nf(v, v < 10 ? 4 : 2)}`).join(' · ')}</div>` : ''}
     ${c.estado !== 'ok' ? `<div class="err">${esc(c.error || 'sin conexión')}</div>` : ''}</span>
     <span class="${c.estado === 'ok' ? 'pos' : 'neg'}">${c.estado === 'ok' ? usd(c.equity) : 'ERROR'}</span></div>`).join('')

@@ -172,6 +172,7 @@ class Binance(Conector):
         import ccxt
         self.ex = ccxt.binanceusdm({"apiKey": c["key"], "secret": c["secret"], "enableRateLimit": True,
                                      "options": {"warnOnFetchOpenOrdersWithoutSymbol": False}})
+        self.exs = ccxt.binance({"apiKey": c["key"], "secret": c["secret"], "enableRateLimit": True})
         self.exc = ccxt.binancecoinm({"apiKey": c["key"], "secret": c["secret"], "enableRateLimit": True,
                                       "options": {"warnOnFetchOpenOrdersWithoutSymbol": False}})
         self.ingresos, self.t_ingresos = [], 0
@@ -202,6 +203,15 @@ class Binance(Conector):
                     detalle[a.get("asset", "") + " (COIN-M)"] = round(mb, 6)
         except Exception as e:
             log.info("%s sin COIN-M: %s", self.c["nombre"], str(e)[:120])
+        self.billeteras = {"Futuros": round(total, 2)}
+        try:   # resto de billeteras (Spot, Fondos, Earn, Bots…), valoradas en USDT por Binance
+            for w in self.exs.sapiGetAssetWalletBalance({"quoteAsset": "USDT"}) or []:
+                nombre, v = w.get("walletName", ""), f(w.get("balance"), 0)
+                if v and "Futures" not in nombre:
+                    total += v
+                    self.billeteras[nombre] = round(v, 2)
+        except Exception as e:
+            log.info("%s billeteras: %s", self.c["nombre"], str(e)[:120])
         self.detalle = detalle
         return total
 
@@ -245,8 +255,11 @@ class Binance(Conector):
             i = p.get("info") or {}
             raw = i.get("symbol") or p["symbol"].replace("/", "").split(":")[0]
             lado = p.get("side") or ("long" if f(i.get("positionAmt"), 0) > 0 else "short")
+            im = f(p.get("initialMargin")) or f(i.get("initialMargin")) or f(i.get("positionInitialMargin"))
+            nocional = abs(f(p.get("notional")) or f(i.get("notional")) or 0)
+            lev = f(p.get("leverage")) or f(i.get("leverage")) or (round(nocional / im, 1) if im and nocional else 1)
             out.append(dict(raw=raw, lado=lado, cantidad=qty, entrada=f(p.get("entryPrice")) or f(i.get("entryPrice")),
-                            precio=f(p.get("markPrice")) or f(i.get("markPrice")), apalancamiento=f(p.get("leverage")) or f(i.get("leverage"), 1),
+                            precio=f(p.get("markPrice")) or f(i.get("markPrice")), apalancamiento=lev,
                             liquidacion=f(p.get("liquidationPrice")) or None, margen=f(p.get("initialMargin")) or f(i.get("isolatedWallet")) or None,
                             sl=sl.get((raw, lado)), pnl=f(p.get("unrealizedPnl")), abierta_ms=None))
         try:   # posiciones COIN-M: contratos en USD → cantidad en moneda = contratos × tamaño / entrada
@@ -260,8 +273,10 @@ class Binance(Conector):
                 mark = f(p.get("markPrice")) or f(i.get("markPrice")) or ent
                 cs = f(p.get("contractSize")) or (100 if raw.startswith("BTC") else 10)
                 lado = p.get("side") or ("long" if f(i.get("positionAmt"), 0) > 0 else "short")
+                imc = f(p.get("initialMargin")) or f(i.get("initialMargin"))
+                levc = f(p.get("leverage")) or f(i.get("leverage")) or (round((n * cs / mark) / imc, 1) if imc else 1)
                 out.append(dict(raw=raw, lado=lado, cantidad=n * cs / ent, entrada=ent, precio=mark,
-                                apalancamiento=f(p.get("leverage")) or f(i.get("leverage"), 1), liquidacion=f(p.get("liquidationPrice")) or None,
+                                apalancamiento=levc, liquidacion=f(p.get("liquidationPrice")) or None,
                                 margen=(f(p.get("initialMargin"), 0) or 0) * mark or None, sl=sl.get((raw, lado)),
                                 pnl=(f(p.get("unrealizedPnl"), 0) or 0) * mark, funding=None, comisiones=None, abierta_ms=None))
         except Exception as e:
@@ -314,6 +329,15 @@ class Bybit(Conector):
                         v = f(c.get("usdValue")) or eq * usd(c.get("coin"))
                         total += v
                         detalle[f"{c.get('coin')}" + ("" if tipo == "UNIFIED" else " (contratos)")] = round(eq, 6)
+        self.billeteras = {"Trading": round(total, 2)}
+        try:
+            r = self.ex.privateGetV5AssetTransferQueryAccountCoinsBalance({"accountType": "FUND"})
+            fondos = sum(f(c.get("walletBalance"), 0) * usd(c.get("coin")) for c in (r.get("result") or {}).get("balance") or [])
+            if fondos:
+                total += fondos
+                self.billeteras["Fondos"] = round(fondos, 2)
+        except Exception as e:
+            log.info("%s fondos: %s", self.c["nombre"], str(e)[:120])
         self.detalle = detalle
         return total
 
@@ -450,11 +474,22 @@ class Pionex(Conector):
                     eq += v * usd(bb.get("coin"))
             eq += f(p.get("unrealizedPnL"), 0) * (usd(par_de(p.get("symbol", ""))[2].replace(par_de(p.get("symbol", ""))[1], "", 1)) or 1)
         self.detalle = detalle
-        try:   # saldo spot en USDT (sin valorar otras monedas)
-            eq += sum(f(b.get("free"), 0) + f(b.get("frozen"), 0) for b in (self._get("/api/v1/account/balances") or {}).get("balances") or []
-                      if b.get("coin") in ("USDT", "USDC"))
-        except Exception:
-            pass
+        self.billeteras = {"Futuros": round(eq, 2)}
+        try:   # spot: todas las monedas valoradas en dólares
+            sp = sum((f(b.get("free"), 0) + f(b.get("frozen"), 0)) * usd(b.get("coin"))
+                     for b in (self._get("/api/v1/account/balances") or {}).get("balances") or [])
+            if sp:
+                eq += sp
+                self.billeteras["Spot"] = round(sp, 2)
+        except Exception as e:
+            log.info("%s spot: %s", self.c["nombre"], str(e)[:120])
+        try:   # bots: valor actual (inversión + ganancia) de cada bot activo
+            vb = sum(b["valor"] for b in self.bots() if b.get("valor"))
+            if vb:
+                eq += vb
+                self.billeteras["Bots"] = round(vb, 2)
+        except Exception as e:
+            log.info("%s bots: %s", self.c["nombre"], str(e)[:120])
         return eq
 
     def posiciones(self):
@@ -478,10 +513,18 @@ class Pionex(Conector):
         out = []
         for b in (d or {}).get("results") or []:
             bd = b.get("buOrderData") or {}
-            inv = next((f(bd.get(k)) for k in ("investment", "quoteInvestment", "totalInvestment", "initQuoteInvestment") if f(bd.get(k)) is not None), None)
-            gan = next((f(bd.get(k)) for k in ("totalProfit", "profit", "gridProfit", "pnl") if f(bd.get(k)) is not None), None)
+            if not getattr(self, "_log_bot", False):     # una vez: anotar los campos que trae Pionex, para ajustar
+                log.info("Pionex buOrderData ejemplo: %s", json.dumps({k: v for k, v in bd.items() if not isinstance(v, (dict, list))})[:600])
+                self._log_bot = True
+            def num(*ks):
+                return next((f(bd.get(k)) for k in ks if f(bd.get(k)) is not None), None)
+            inv = num("investment", "totalInvestment", "quoteInvestment", "initQuoteInvestment", "quoteTotalInvestment", "usdtInvestment")
+            gan = num("totalProfit", "profit", "pnl", "totalPnl", "gridProfit")
+            valor = num("totalValue", "currentValue", "equity", "netValue", "totalAsset")
+            if valor is None and inv is not None:
+                valor = inv + (gan or 0)
             out.append(dict(nombre=b.get("customizeName") or b.get("botName") or b.get("buOrderType"), par=f"{b.get('base')}/{b.get('quote')}",
-                            tipo=b.get("buOrderType"), inversion=inv, ganancia=gan, desde=iso(b.get("createTime"))))
+                            tipo=b.get("buOrderType"), inversion=inv, ganancia=gan, valor=valor, desde=iso(b.get("createTime"))))
         return out
 
     def cierre(self, s):
@@ -511,6 +554,8 @@ def bots_freqtrade():
                 lado = "short" if t["is_short"] else "long"
                 lev = f(t["leverage"], 1) or 1
                 abierta = datetime.fromisoformat(str(t["open_date"]).split(".")[0]).replace(tzinfo=timezone.utc).isoformat()
+                if t["is_open"] and not f(t["amount"], 0):
+                    continue
                 if t["is_open"]:
                     pos.append(dict(id=f"bot|{archivo}|{t['id']}", cuenta=CUENTA_BOTS, origen="bot", bot=nombre, par=par, moneda=base, lado=lado,
                                     cantidad=f(t["amount"], 0), entrada=f(t["open_rate"]), precio=PRECIOS.get((ex, raw)) or f(t["open_rate"]),
@@ -587,6 +632,8 @@ def ciclo_privado(conectores, cuentas_estado, posiciones):
             info["equity"] = con.equity()
             if getattr(con, "detalle", None):
                 info["activos"] = con.detalle
+            if getattr(con, "billeteras", None):
+                info["billeteras"] = con.billeteras
             with db() as c:
                 c.execute("insert or ignore into equity_dia values(?,?,?)", (fecha, nombre, info["equity"]))
                 r = c.execute("select equity from equity_dia where fecha=? and cuenta=?", (fecha, nombre)).fetchone()
