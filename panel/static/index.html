@@ -195,7 +195,7 @@ tr.liq td:first-child{background:#2a1820} tr.sinsl td:first-child{background:#11
         <label>Funding alto (% cada 8 h)</label><input type="number" id="alFund" step="0.01">
         <label>Incluir bots</label><select id="alBots"><option value="0">No (solo manuales)</option><option value="1">Sí</option></select>
       </div>
-      <p><button class="btn" id="alGuardar">Guardar alertas</button> <span id="alMsg" class="mut"></span></p>
+      <p><button class="btn" id="alGuardar">Guardar alertas</button> <button class="btn" id="alProbar" style="background:var(--panel2);color:var(--txt);border:1px solid var(--line)">Enviar prueba a Telegram</button> <span id="alMsg" class="mut"></span></p>
     </div>
   </div>
 </section>
@@ -536,7 +536,10 @@ function pintarCuentas() {
   $('#ctas').innerHTML = D.cuentas.map(c => `<div class="fila"><span><b>${esc(c.nombre)}</b> <span class="mut">· ${esc(c.exchange)}</span>
     ${c.estado !== 'ok' ? `<div class="err">${esc(c.error || 'sin conexión')}</div>` : ''}</span>
     <span class="${c.estado === 'ok' ? 'pos' : 'neg'}">${c.estado === 'ok' ? usd(c.equity) : 'ERROR'}</span></div>`).join('')
-    + '<div class="aviso">Para agregar o quitar cuentas, vuelve a correr el instalador en el VPS.</div>';
+    + ((D.pionex_bots || []).length ? '<h3 style="margin-top:14px">Bots de Pionex</h3>' + D.pionex_bots.map(b =>
+      `<div class="fila"><span><b>${esc(b.nombre || b.tipo)}</b> <span class="mut">· ${esc(b.par || '')} · ${esc(b.cuenta || '')}</span></span>
+      <span>${b.inversion != null ? usd(b.inversion) : ''} ${b.ganancia != null ? `<span class="${cls(b.ganancia)}">${sg(b.ganancia)}</span>` : ''}</span></div>`).join('') : '')
+    + '<div class="aviso">Para agregar cuentas o cambiar llaves: en el VPS escribe <b>panel-cuentas</b>.</div>';
   const a = D.alertas;
   for (const [id, k] of [['#alLiq', 'liq_pct'], ['#alBE', 'be'], ['#alR2', 'r2'], ['#alCierre', 'cierre'], ['#alFund', 'funding_pct'], ['#alBots', 'bots']])
     if (document.activeElement !== $(id) && !$(id).dataset.tocado) $(id).value = typeof a[k] === 'boolean' ? (a[k] ? 1 : 0) : a[k];
@@ -571,6 +574,7 @@ $('#fdGuardar').onclick = () => { const f = {cuenta: $('#fdCuenta').value, balan
 $('#alGuardar').onclick = () => { const a = {liq_pct: +$('#alLiq').value, be: $('#alBE').value === '1', r2: $('#alR2').value === '1',
   cierre: $('#alCierre').value === '1', funding_pct: +$('#alFund').value, bots: $('#alBots').value === '1'};
   Object.assign(D.alertas, a); $$('#s-cuentas input, #s-cuentas select').forEach(i => delete i.dataset.tocado); guardar('api/alertas', a, '#alMsg'); };
+$('#alProbar').onclick = () => guardar('api/prueba_telegram', {}, '#alMsg');
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarDetalle(); });
 
 // ------------------------------------------------------------------ datos de ejemplo (?demo=1 o sin servidor)
