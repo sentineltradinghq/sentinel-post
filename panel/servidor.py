@@ -127,7 +127,7 @@ def actualizar_precios():
     try:
         for cat in ("linear",):
             r = requests.get(f"https://api.bybit.com/v5/market/tickers?category={cat}", headers=UA, timeout=8).json()
-            for x in r.get("result", {}).get("list", []):
+            for x in (r.get("result") or {}).get("list") or []:
                 PRECIOS[("bybit", x["symbol"])] = f(x.get("markPrice"))
                 FUNDING[("bybit", x["symbol"])] = f(x.get("fundingRate"))
     except Exception as e:
@@ -156,18 +156,18 @@ class Binance(Conector):
 
     def equity(self):
         b = self.ex.fetch_balance()
-        return f(b.get("info", {}).get("totalMarginBalance")) or f(b.get("total", {}).get("USDT"), 0)
+        return f((b.get("info") or {}).get("totalMarginBalance")) or f((b.get("total") or {}).get("USDT"), 0)
 
     def stops(self):
         out = {}
         ordenes = []
         try:
-            ordenes += [o.get("info", {}) | {"_trig": o.get("triggerPrice") or o.get("stopPrice")} for o in self.ex.fetch_open_orders()]
+            ordenes += [(o.get("info") or {}) | {"_trig": o.get("triggerPrice") or o.get("stopPrice")} for o in self.ex.fetch_open_orders()]
         except Exception as e:
             log.warning("%s órdenes: %s", self.c["nombre"], e)
         try:   # órdenes condicionales nuevas (servicio "algo" de Binance)
             r = self.ex.request("openAlgoOrders", "fapiPrivate", "GET", {})
-            ordenes += [o | {"_trig": o.get("triggerPrice")} for o in (r if isinstance(r, list) else r.get("orders", []))]
+            ordenes += [o | {"_trig": o.get("triggerPrice")} for o in (r if isinstance(r, list) else r.get("orders") or [])]
         except Exception:
             pass
         for o in ordenes:
@@ -186,7 +186,7 @@ class Binance(Conector):
             qty = abs(f(p.get("contracts"), 0) or 0)
             if not qty:
                 continue
-            i = p.get("info", {})
+            i = p.get("info") or {}
             raw = i.get("symbol") or p["symbol"].replace("/", "").split(":")[0]
             lado = p.get("side") or ("long" if f(i.get("positionAmt"), 0) > 0 else "short")
             out.append(dict(raw=raw, lado=lado, cantidad=qty, entrada=f(p.get("entryPrice")) or f(i.get("entryPrice")),
@@ -227,14 +227,14 @@ class Bybit(Conector):
 
     def equity(self):
         r = self.ex.privateGetV5AccountWalletBalance({"accountType": "UNIFIED"})
-        lst = r.get("result", {}).get("list", [])
+        lst = (r.get("result") or {}).get("list") or []
         return f(lst[0].get("totalEquity"), 0) if lst else 0
 
     def posiciones(self):
         out = []
         for coin in ("USDT", "USDC"):
             r = self.ex.privateGetV5PositionList({"category": "linear", "settleCoin": coin, "limit": 200})
-            for i in r.get("result", {}).get("list", []):
+            for i in (r.get("result") or {}).get("list") or []:
                 qty = f(i.get("size"), 0)
                 if not qty:
                     continue
@@ -247,7 +247,7 @@ class Bybit(Conector):
 
     def cierre(self, s):
         r = self.ex.privateGetV5PositionClosedPnl({"category": "linear", "symbol": s["raw"], "startTime": s["primera_vez"] - 60000, "limit": 50})
-        lst = r.get("result", {}).get("list", [])
+        lst = (r.get("result") or {}).get("list") or []
         if not lst:
             return dict(pnl=s["ultimo_pnl"], salida=s["ultimo_precio"], aprox=1)
         return dict(pnl=sum(f(x.get("closedPnl"), 0) for x in lst), salida=f(lst[0].get("avgExitPrice")) or s["ultimo_precio"], aprox=0)
@@ -319,9 +319,9 @@ class Pionex(Conector):
 
     def equity(self):
         d = self._get("/uapi/v1/account/detail")
-        eq = sum(f(b.get("assets"), 0) + f(b.get("unrealizedPnL"), 0) for b in d.get("balances", []) if b.get("coin") in ("USDT", "USDC"))
+        eq = sum(f(b.get("assets"), 0) + f(b.get("unrealizedPnL"), 0) for b in (d or {}).get("balances") or [] if b.get("coin") in ("USDT", "USDC"))
         try:   # saldo spot en USDT (sin valorar otras monedas)
-            eq += sum(f(b.get("free"), 0) + f(b.get("frozen"), 0) for b in self._get("/api/v1/account/balances").get("balances", [])
+            eq += sum(f(b.get("free"), 0) + f(b.get("frozen"), 0) for b in (self._get("/api/v1/account/balances") or {}).get("balances") or []
                       if b.get("coin") in ("USDT", "USDC"))
         except Exception:
             pass
@@ -329,7 +329,7 @@ class Pionex(Conector):
 
     def posiciones(self):
         out = []
-        for p in self._get("/uapi/v1/account/positions").get("positions", []):
+        for p in (self._get("/uapi/v1/account/positions") or {}).get("positions") or []:
             net = f(p.get("netSize"), 0) or (f(p.get("sizeLong"), 0) + f(p.get("sizeShort"), 0))
             if not net:
                 continue
@@ -346,7 +346,7 @@ class Pionex(Conector):
         except Exception as e:
             return [dict(nombre="(sin acceso a bots)", detalle=str(e)[:120])]
         out = []
-        for b in d.get("results", []):
+        for b in (d or {}).get("results") or []:
             bd = b.get("buOrderData") or {}
             inv = next((f(bd.get(k)) for k in ("investment", "quoteInvestment", "totalInvestment", "initQuoteInvestment") if f(bd.get(k)) is not None), None)
             gan = next((f(bd.get(k)) for k in ("totalProfit", "profit", "gridProfit", "pnl") if f(bd.get(k)) is not None), None)
@@ -370,7 +370,7 @@ def bots_freqtrade():
             ruta = ruta if os.path.isabs(ruta) else os.path.join(FREQ, ruta)
             if not os.path.exists(ruta):
                 continue
-            ex = "bybit" if "bybit" in c.get("exchange", {}).get("name", "").lower() else "binance"
+            ex = "bybit" if "bybit" in (c.get("exchange") or {}).get("name", "").lower() else "binance"
             con = sqlite3.connect(f"file:{ruta}?mode=ro", uri=True, timeout=5)
             con.row_factory = sqlite3.Row
             cols = {r[1] for r in con.execute("pragma table_info(trades)")}
@@ -596,13 +596,16 @@ def bucle():
                     ESTADO["cuentas"], ESTADO["_manuales"] = cuentas_estado, posiciones
                 t_priv = time.time()
             if time.time() - t_pionex > 60:
+                t_pionex = time.time()
                 pionex_bots = []
                 for n, con in conectores.items():
                     if isinstance(con, Pionex):
-                        pionex_bots += [b | {"cuenta": n} for b in con.bots()]
-                t_pionex = time.time()
+                        try:
+                            pionex_bots += [b | {"cuenta": n} for b in con.bots()]
+                        except Exception as e:
+                            log.warning("bots %s: %s", n, e)
             # refrescar precios de todo en cada vuelta
-            manuales = ESTADO.get("_manuales", [])
+            manuales = ESTADO.get("_manuales") or []
             for p in manuales + bots_pos:
                 p["precio"] = PRECIOS.get((p.get("_ex"), p.get("_raw"))) or p["precio"]
             with db() as c:
