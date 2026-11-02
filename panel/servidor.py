@@ -28,6 +28,7 @@ BOTS = {  # config de Freqtrade → nombre visible
     "config_sol15mshort_bybit_live.json": "SOL 15m Short",
 }
 CUENTA_BOTS = "Bots (simulados)"
+ESTABLES = {"USDT", "USDC", "FDUSD", "BUSD", "USD", "TUSD", "DAI"}
 
 # ======================================================================= utilidades
 def f(x, d=None):
@@ -156,7 +157,20 @@ class Binance(Conector):
 
     def equity(self):
         b = self.ex.fetch_balance()
-        return f((b.get("info") or {}).get("totalMarginBalance")) or f((b.get("total") or {}).get("USDT"), 0)
+        info = b.get("info") or {}
+        total, detalle = 0.0, {}
+        for a in info.get("assets") or []:     # USDT, USDC, BNB, BTC… de la cuenta de futuros
+            mb = f(a.get("marginBalance"))
+            if mb is None:
+                mb = f(a.get("walletBalance"), 0) + f(a.get("unrealizedProfit"), 0)
+            if not mb:
+                continue
+            activo = a.get("asset", "")
+            precio = 1.0 if activo in ESTABLES else (PRECIOS.get(("binance", activo + "USDT")) or PRECIOS.get(("binance", activo + "USDC")) or 0)
+            total += mb * precio
+            detalle[activo] = round(mb, 6)
+        self.detalle = detalle
+        return total if detalle else (f(info.get("totalMarginBalance")) or f((b.get("total") or {}).get("USDT"), 0))
 
     def stops(self):
         out = {}
@@ -269,9 +283,17 @@ class Bitunix(Conector):
         return r.get("data")
 
     def equity(self):
-        d = self._get("/api/v1/futures/account", {"marginCoin": "USDT"})
-        d = d[0] if isinstance(d, list) and d else d or {}
-        return sum(f(d.get(k), 0) for k in ("available", "frozen", "margin", "crossUnrealizedPNL", "isolationUnrealizedPNL"))
+        total = 0.0
+        for moneda in ("USDT", "USDC"):
+            try:
+                d = self._get("/api/v1/futures/account", {"marginCoin": moneda})
+            except Exception:
+                if moneda == "USDT":
+                    raise
+                continue
+            d = d[0] if isinstance(d, list) and d else d or {}
+            total += sum(f(d.get(k), 0) for k in ("available", "frozen", "margin", "crossUnrealizedPNL", "isolationUnrealizedPNL"))
+        return total
 
     def posiciones(self):
         sl = {}
@@ -455,6 +477,8 @@ def ciclo_privado(conectores, cuentas_estado, posiciones):
         info = dict(nombre=nombre, exchange=ex, estado="ok", error="")
         try:
             info["equity"] = con.equity()
+            if getattr(con, "detalle", None):
+                info["activos"] = con.detalle
             with db() as c:
                 c.execute("insert or ignore into equity_dia values(?,?,?)", (fecha, nombre, info["equity"]))
                 r = c.execute("select equity from equity_dia where fecha=? and cuenta=?", (fecha, nombre)).fetchone()
