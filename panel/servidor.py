@@ -136,6 +136,8 @@ def actualizar_precios():
     try:
         for x in requests.get("https://dapi.binance.com/dapi/v1/premiumIndex", headers=UA, timeout=8).json():
             PRECIOS[("binance", x["symbol"])] = f(x.get("markPrice"))
+            if x["symbol"].endswith("_PERP"):
+                PRECIOS[("binance", x["symbol"][:-5])] = f(x.get("markPrice"))
             FUNDING[("binance", x["symbol"])] = f(x.get("lastFundingRate"))
     except Exception as e:
         log.warning("precios binance coin-m: %s", e)
