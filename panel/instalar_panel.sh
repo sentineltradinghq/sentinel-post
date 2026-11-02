@@ -42,42 +42,37 @@ clave = $CLAVE
 token   = PEGA_AQUI
 chat_id = PEGA_AQUI
 
-[Binance Principal]
+[Binance Yasmani]
 exchange   = binance
 api_key    = PEGA_AQUI
 api_secret = PEGA_AQUI
 
-[Binance 2]
+[Binance Wendy]
 exchange   = binance
 api_key    = PEGA_AQUI
 api_secret = PEGA_AQUI
 
-[Binance 3]
+[Binance Has]
 exchange   = binance
 api_key    = PEGA_AQUI
 api_secret = PEGA_AQUI
 
-[Bybit]
+[Bybit Wendy]
 exchange   = bybit
 api_key    = PEGA_AQUI
 api_secret = PEGA_AQUI
 
-[Bitunix 1]
+[Bitunix Yasmani]
 exchange   = bitunix
 api_key    = PEGA_AQUI
 api_secret = PEGA_AQUI
 
-[Bitunix 2]
-exchange   = bitunix
+[Pionex Yasmani]
+exchange   = pionex
 api_key    = PEGA_AQUI
 api_secret = PEGA_AQUI
 
-[Bitunix 3]
-exchange   = bitunix
-api_key    = PEGA_AQUI
-api_secret = PEGA_AQUI
-
-[Pionex]
+[Pionex Wendy]
 exchange   = pionex
 api_key    = PEGA_AQUI
 api_secret = PEGA_AQUI
