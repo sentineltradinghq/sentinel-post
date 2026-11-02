@@ -53,7 +53,7 @@ def par_de(raw):
     if "/" in s or "_" in s:
         b, q = s.replace("_", "/").split("/")[:2]
     else:
-        q = next((q for q in ("USDT", "USDC", "BUSD", "USD") if s.endswith(q)), "USDT")
+        q = next((q for q in ("USDT", "USDC", "FDUSD", "USD") if s.endswith(q)), "USDT")
         b = s[: -len(q)]
     return f"{b}/{q}", b, b + q
 
@@ -126,7 +126,7 @@ def actualizar_precios():
     except Exception as e:
         log.warning("precios binance: %s", e)
     try:
-        for cat in ("linear",):
+        for cat in ("linear", "inverse"):
             r = requests.get(f"https://api.bybit.com/v5/market/tickers?category={cat}", headers=UA, timeout=8).json()
             for x in (r.get("result") or {}).get("list") or []:
                 PRECIOS[("bybit", x["symbol"])] = f(x.get("markPrice"))
@@ -134,11 +134,28 @@ def actualizar_precios():
     except Exception as e:
         log.warning("precios bybit: %s", e)
     try:
+        for x in requests.get("https://dapi.binance.com/dapi/v1/premiumIndex", headers=UA, timeout=8).json():
+            PRECIOS[("binance", x["symbol"])] = f(x.get("markPrice"))
+            FUNDING[("binance", x["symbol"])] = f(x.get("lastFundingRate"))
+    except Exception as e:
+        log.warning("precios binance coin-m: %s", e)
+    try:
         r = requests.get("https://fapi.bitunix.com/api/v1/futures/market/tickers", headers=UA, timeout=8).json()
         for x in r.get("data") or []:
             PRECIOS[("bitunix", x["symbol"])] = f(x.get("markPrice")) or f(x.get("lastPrice"))
     except Exception as e:
         log.warning("precios bitunix: %s", e)
+
+
+def usd(moneda):
+    """Precio en dólares de una moneda (BNB, BTC…) usando los perpetuos de Binance/Bybit."""
+    m = (moneda or "").upper()
+    if m in ESTABLES:
+        return 1.0
+    for k in (("binance", m + "USDT"), ("bybit", m + "USDT"), ("binance", m + "USDC"), ("binance", m + "USD_PERP"), ("bybit", m + "USD")):
+        if PRECIOS.get(k):
+            return PRECIOS[k]
+    return 0.0
 
 
 # ======================================================================= conectores privados
@@ -153,6 +170,8 @@ class Binance(Conector):
         import ccxt
         self.ex = ccxt.binanceusdm({"apiKey": c["key"], "secret": c["secret"], "enableRateLimit": True,
                                      "options": {"warnOnFetchOpenOrdersWithoutSymbol": False}})
+        self.exc = ccxt.binancecoinm({"apiKey": c["key"], "secret": c["secret"], "enableRateLimit": True,
+                                      "options": {"warnOnFetchOpenOrdersWithoutSymbol": False}})
         self.ingresos, self.t_ingresos = [], 0
 
     def equity(self):
@@ -166,11 +185,23 @@ class Binance(Conector):
             if not mb:
                 continue
             activo = a.get("asset", "")
-            precio = 1.0 if activo in ESTABLES else (PRECIOS.get(("binance", activo + "USDT")) or PRECIOS.get(("binance", activo + "USDC")) or 0)
-            total += mb * precio
+            total += mb * usd(activo)
             detalle[activo] = round(mb, 6)
+        if not detalle:
+            total = f(info.get("totalMarginBalance")) or f((b.get("total") or {}).get("USDT"), 0)
+        try:   # futuros COIN-M (margen en BNB, BTC, ETH…)
+            bc = self.exc.fetch_balance()
+            for a in (bc.get("info") or {}).get("assets") or []:
+                mb = f(a.get("marginBalance"))
+                if mb is None:
+                    mb = f(a.get("walletBalance"), 0) + f(a.get("unrealizedProfit"), 0)
+                if mb:
+                    total += mb * usd(a.get("asset"))
+                    detalle[a.get("asset", "") + " (COIN-M)"] = round(mb, 6)
+        except Exception as e:
+            log.info("%s sin COIN-M: %s", self.c["nombre"], str(e)[:120])
         self.detalle = detalle
-        return total if detalle else (f(info.get("totalMarginBalance")) or f((b.get("total") or {}).get("USDT"), 0))
+        return total
 
     def stops(self):
         out = {}
@@ -191,6 +222,15 @@ class Binance(Conector):
                 lado = "long" if str(o.get("side")).upper() == "SELL" else "short"
                 if trig:
                     out[(o.get("symbol"), lado)] = trig
+        try:
+            for o in self.exc.fetch_open_orders():
+                i = o.get("info") or {}
+                tipo = str(i.get("type") or i.get("origType") or "").upper()
+                trig = f(o.get("triggerPrice")) or f(o.get("stopPrice")) or f(i.get("stopPrice"))
+                if "STOP" in tipo and "PROFIT" not in tipo and trig:
+                    out[(i.get("symbol"), "long" if str(i.get("side")).upper() == "SELL" else "short")] = trig
+        except Exception:
+            pass
         return out
 
     def posiciones(self):
@@ -207,6 +247,23 @@ class Binance(Conector):
                             precio=f(p.get("markPrice")) or f(i.get("markPrice")), apalancamiento=f(p.get("leverage")) or f(i.get("leverage"), 1),
                             liquidacion=f(p.get("liquidationPrice")) or None, margen=f(p.get("initialMargin")) or f(i.get("isolatedWallet")) or None,
                             sl=sl.get((raw, lado)), pnl=f(p.get("unrealizedPnl")), abierta_ms=None))
+        try:   # posiciones COIN-M: contratos en USD → cantidad en moneda = contratos × tamaño / entrada
+            for p in self.exc.fetch_positions():
+                n = abs(f(p.get("contracts"), 0) or 0)
+                if not n:
+                    continue
+                i = p.get("info") or {}
+                raw = i.get("symbol") or ""
+                ent = f(p.get("entryPrice")) or f(i.get("entryPrice"))
+                mark = f(p.get("markPrice")) or f(i.get("markPrice")) or ent
+                cs = f(p.get("contractSize")) or (100 if raw.startswith("BTC") else 10)
+                lado = p.get("side") or ("long" if f(i.get("positionAmt"), 0) > 0 else "short")
+                out.append(dict(raw=raw, lado=lado, cantidad=n * cs / ent, entrada=ent, precio=mark,
+                                apalancamiento=f(p.get("leverage")) or f(i.get("leverage"), 1), liquidacion=f(p.get("liquidationPrice")) or None,
+                                margen=(f(p.get("initialMargin"), 0) or 0) * mark or None, sl=sl.get((raw, lado)),
+                                pnl=(f(p.get("unrealizedPnl"), 0) or 0) * mark, funding=None, comisiones=None, abierta_ms=None))
+        except Exception as e:
+            log.info("%s posiciones COIN-M: %s", self.c["nombre"], str(e)[:120])
         return out
 
     def _ingresos(self):
@@ -230,7 +287,9 @@ class Binance(Conector):
         self.t_ingresos = 0
         pnl = sum(f(x.get("income"), 0) for x in self._ingresos() if x.get("symbol") == s["raw"] and int(x.get("time", 0)) >= s["primera_vez"] - 60000
                   and x.get("incomeType") in ("REALIZED_PNL", "COMMISSION", "FUNDING_FEE"))
-        return dict(pnl=pnl, salida=s["ultimo_precio"], aprox=0 if pnl else 1)
+        if not pnl:
+            return dict(pnl=s["ultimo_pnl"], salida=s["ultimo_precio"], aprox=1)
+        return dict(pnl=pnl, salida=s["ultimo_precio"], aprox=0)
 
 
 class Bybit(Conector):
@@ -240,9 +299,21 @@ class Bybit(Conector):
         self.ex = ccxt.bybit({"apiKey": c["key"], "secret": c["secret"], "enableRateLimit": True, "options": {"defaultType": "swap"}})
 
     def equity(self):
-        r = self.ex.privateGetV5AccountWalletBalance({"accountType": "UNIFIED"})
-        lst = (r.get("result") or {}).get("list") or []
-        return f(lst[0].get("totalEquity"), 0) if lst else 0
+        total, detalle = 0.0, {}
+        for tipo in ("UNIFIED", "CONTRACT"):
+            try:
+                r = self.ex.privateGetV5AccountWalletBalance({"accountType": tipo})
+            except Exception:
+                continue
+            for cuenta in (r.get("result") or {}).get("list") or []:
+                for c in cuenta.get("coin") or []:
+                    eq = f(c.get("equity"), 0)
+                    if eq:
+                        v = f(c.get("usdValue")) or eq * usd(c.get("coin"))
+                        total += v
+                        detalle[f"{c.get('coin')}" + ("" if tipo == "UNIFIED" else " (contratos)")] = round(eq, 6)
+        self.detalle = detalle
+        return total
 
     def posiciones(self):
         out = []
@@ -257,14 +328,30 @@ class Bybit(Conector):
                                 apalancamiento=f(i.get("leverage"), 1), liquidacion=f(i.get("liqPrice")) or None,
                                 margen=f(i.get("positionIM")) or None, sl=f(i.get("stopLoss")) or None, pnl=f(i.get("unrealisedPnl")),
                                 funding=None, comisiones=None, abierta_ms=int(i.get("createdTime") or 0) or None))
+        try:   # contratos inversos (margen en la moneda): tamaño en USD
+            r = self.ex.privateGetV5PositionList({"category": "inverse", "limit": 200})
+            for i in (r.get("result") or {}).get("list") or []:
+                n = f(i.get("size"), 0)
+                if not n:
+                    continue
+                ent = f(i.get("avgPrice")); mark = f(i.get("markPrice")) or ent
+                out.append(dict(raw=i["symbol"], lado="long" if i.get("side") == "Buy" else "short", cantidad=n / ent, entrada=ent, precio=mark,
+                                apalancamiento=f(i.get("leverage"), 1), liquidacion=f(i.get("liqPrice")) or None,
+                                margen=(f(i.get("positionIM"), 0) or 0) * mark or None, sl=f(i.get("stopLoss")) or None,
+                                pnl=(f(i.get("unrealisedPnl"), 0) or 0) * mark, funding=None, comisiones=None,
+                                abierta_ms=int(i.get("createdTime") or 0) or None))
+        except Exception as e:
+            log.info("%s inversos: %s", self.c["nombre"], str(e)[:120])
         return out
 
     def cierre(self, s):
-        r = self.ex.privateGetV5PositionClosedPnl({"category": "linear", "symbol": s["raw"], "startTime": s["primera_vez"] - 60000, "limit": 50})
+        cat = "inverse" if s["raw"].endswith("USD") else "linear"
+        r = self.ex.privateGetV5PositionClosedPnl({"category": cat, "symbol": s["raw"], "startTime": s["primera_vez"] - 60000, "limit": 50})
         lst = (r.get("result") or {}).get("list") or []
         if not lst:
             return dict(pnl=s["ultimo_pnl"], salida=s["ultimo_precio"], aprox=1)
-        return dict(pnl=sum(f(x.get("closedPnl"), 0) for x in lst), salida=f(lst[0].get("avgExitPrice")) or s["ultimo_precio"], aprox=0)
+        k = (f(lst[0].get("avgExitPrice")) or s["ultimo_precio"] or 1) if cat == "inverse" else 1
+        return dict(pnl=sum(f(x.get("closedPnl"), 0) for x in lst) * k, salida=f(lst[0].get("avgExitPrice")) or s["ultimo_precio"], aprox=0)
 
 
 class Bitunix(Conector):
@@ -284,7 +371,8 @@ class Bitunix(Conector):
 
     def equity(self):
         total = 0.0
-        for moneda in ("USDT", "USDC"):
+        detalle = {}
+        for moneda in ("USDT", "USDC", "BTC", "ETH"):
             try:
                 d = self._get("/api/v1/futures/account", {"marginCoin": moneda})
             except Exception:
@@ -292,7 +380,11 @@ class Bitunix(Conector):
                     raise
                 continue
             d = d[0] if isinstance(d, list) and d else d or {}
-            total += sum(f(d.get(k), 0) for k in ("available", "frozen", "margin", "crossUnrealizedPNL", "isolationUnrealizedPNL"))
+            v = sum(f(d.get(k), 0) for k in ("available", "frozen", "margin", "crossUnrealizedPNL", "isolationUnrealizedPNL"))
+            if v:
+                total += v * usd(moneda)
+                detalle[moneda] = round(v, 6)
+        self.detalle = detalle
         return total
 
     def posiciones(self):
@@ -341,7 +433,21 @@ class Pionex(Conector):
 
     def equity(self):
         d = self._get("/uapi/v1/account/detail")
-        eq = sum(f(b.get("assets"), 0) + f(b.get("unrealizedPnL"), 0) for b in (d or {}).get("balances") or [] if b.get("coin") in ("USDT", "USDC"))
+        eq, detalle = 0.0, {}
+        for b in (d or {}).get("balances") or []:
+            v = f(b.get("assets"), 0) + f(b.get("unrealizedPnL"), 0)
+            if v:
+                eq += v * usd(b.get("coin"))
+                detalle[b.get("coin", "")] = round(v, 6)
+        for p in (d or {}).get("positions") or []:       # posiciones aisladas: su margen y su PnL flotante
+            if str(p.get("isolatedMode", "CROSS")).upper() == "CROSS":
+                continue
+            for bb in p.get("balances") or []:
+                v = f(bb.get("free"), 0) + f(bb.get("frozen"), 0)
+                if v:
+                    eq += v * usd(bb.get("coin"))
+            eq += f(p.get("unrealizedPnL"), 0) * (usd(par_de(p.get("symbol", ""))[2].replace(par_de(p.get("symbol", ""))[1], "", 1)) or 1)
+        self.detalle = detalle
         try:   # saldo spot en USDT (sin valorar otras monedas)
             eq += sum(f(b.get("free"), 0) + f(b.get("frozen"), 0) for b in (self._get("/api/v1/account/balances") or {}).get("balances") or []
                       if b.get("coin") in ("USDT", "USDC"))
@@ -513,7 +619,7 @@ def ciclo_privado(conectores, cuentas_estado, posiciones):
                     c.execute("update seguimiento set entrada=?, cantidad=?, margen=?, ultimo_precio=?, ultimo_pnl=? where id=?",
                               (p["entrada"], p["cantidad"], p.get("margen"), p["precio"], p.get("pnl"), pid))
             fu, co = p.get("funding"), p.get("comisiones")
-            if isinstance(con, Binance):
+            if isinstance(con, Binance) and not p["raw"].endswith("_PERP"):
                 fu, co = con.costos(p["raw"], p.get("abierta_ms") or primera)
             posiciones.append(dict(id=pid, cuenta=nombre, origen="manual", bot=None, par=par, moneda=base, lado=p["lado"], cantidad=p["cantidad"],
                                    entrada=p["entrada"], precio=p["precio"], apalancamiento=p["apalancamiento"], sl=p.get("sl"),
