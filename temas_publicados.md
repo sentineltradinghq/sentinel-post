@@ -16,3 +16,4 @@
 - 2026-11-02 am — Operar por venganza (revenge trading): la espiral pérdida→rabia→más tamaño→más pérdida y 4 reglas para cortarla
 - 2026-11-02 pm — Mercado del día: Binance reabre retiros (salida neta ~$3.640 M, repone ~95%) + elecciones de mitad de mandato en EE. UU. (3 nov); BTC ~$76.730, F&G 37; no apostar a eventos
 - 2026-11-03 am — Apalancamiento y precio de liquidación (2x≈−50%, 10x≈−10%, 100x≈−1%; stop antes de la liquidación, tamaño por riesgo)
+- 2026-11-03 pm — Mercado del día de elecciones: salidas de ETF de BTC (~$1.042 M en 30 oct + 2 nov; IBIT −$405 M) y rebote de BTC (~$77.700, +1,3%); cómo leer flujos de ETF (contexto, no señal)
