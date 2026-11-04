@@ -4,6 +4,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/sentineltradinghq/sentinel-post/main/vps_pruebas/instalar.sh | FT_VERSION=2026.x bash
 set -e
 FT_VERSION=${FT_VERSION:-}
+CCXT_VERSION=${CCXT_VERSION:-}
 RAW=https://raw.githubusercontent.com/sentineltradinghq/sentinel-post/${REF:-main}/vps_pruebas
 export DEBIAN_FRONTEND=noninteractive
 
@@ -23,7 +24,7 @@ echo "== 3/5 Freqtrade ${FT_VERSION:-última versión}"
 mkdir -p /root/freqtrade && cd /root/freqtrade
 [ -d .venv ] || python3 -m venv .venv
 .venv/bin/pip install -q -U pip wheel
-.venv/bin/pip install -q "freqtrade${FT_VERSION:+==$FT_VERSION}"
+.venv/bin/pip install -q "freqtrade${FT_VERSION:+==$FT_VERSION}" ${CCXT_VERSION:+"ccxt==$CCXT_VERSION"}
 .venv/bin/freqtrade create-userdir --userdir user_data >/dev/null
 .venv/bin/freqtrade --version
 
