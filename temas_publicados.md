@@ -18,3 +18,4 @@
 - 2026-11-03 am — Apalancamiento y precio de liquidación (2x≈−50%, 10x≈−10%, 100x≈−1%; stop antes de la liquidación, tamaño por riesgo)
 - 2026-11-03 pm — Mercado del día de elecciones: salidas de ETF de BTC (~$1.042 M en 30 oct + 2 nov; IBIT −$405 M) y rebote de BTC (~$77.700, +1,3%); cómo leer flujos de ETF (contexto, no señal)
 - 2026-11-04 am — Stop loss: 3 errores (operar sin stop, moverlo en contra, ponerlo demasiado pegado) y cómo hacerlo bien (definirlo antes, ajustar tamaño, solo moverlo a favor)
+- 2026-11-04 especial ~5:05 p. m. — BTC se da la vuelta tras las midterms: de <$76K a $81K (+7,2% mín→máx), $415 M liquidados (short squeeze), ETH +6%, SOL +2%; ETF -$1.160 M en 3 días; un plan no cambia con cada titular
