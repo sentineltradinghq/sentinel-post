@@ -9,8 +9,13 @@ Esta guía la sigue Claude en cada tarea programada de publicación.
 - Imagen: 1080×1350 px (vertical), SIEMPRE en JPG (.jpg); TikTok rechaza PNG, fuente DejaVu Sans, cuadrícula sutil de fondo, "SENTINEL TRADING" arriba en dorado, @sentineltradinghq y "Contenido educativo. No es asesoría financiera." abajo.
 
 ## Horarios
-- 7:30 a. m. → educativo (se prepara a las 6:02 a. m.): conceptos de trading, cripto, consejos, gestión de riesgo, psicología.
-- 7:00 p. m. → Sentinel: avances del proyecto, comunidad, resultados con transparencia, mercado del día.
+- Desde el 2026-11-05 hay UN SOLO post al día: 7:00 p. m. (se prepara a las 5:18 p. m.). Ya no se publica el de la mañana.
+- El post de las 7:00 p. m. es completo y mezcla, según lo más importante del día:
+  protagonista (la noticia o novedad más importante) + resumen del día (BTC/ETH/SOL, miedo y codicia, noticias)
+  + novedades de Sentinel si las hay + SIEMPRE un tip educativo corto + SIEMPRE invitación a la comunidad gratis.
+- Historias: la normal (tools/historia.py) 5 min después del post y una historia COMPLEMENTARIA propia (1080×1920)
+  10 min después, con lo que no cupo en el post (cifras del día, otra noticia o novedad de Sentinel) + el tip + invitación.
+- Domingo: el post es el resumen semanal de los bots (ver abajo), también con tip y historia complementaria.
 
 ## Tono
 - Cercano y directo (tuteando), pero con contenido profesional y correcto.
