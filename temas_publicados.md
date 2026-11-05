@@ -20,3 +20,4 @@
 - 2026-11-04 am — Stop loss: 3 errores (operar sin stop, moverlo en contra, ponerlo demasiado pegado) y cómo hacerlo bien (definirlo antes, ajustar tamaño, solo moverlo a favor)
 - 2026-11-04 especial ~5:05 p. m. — BTC se da la vuelta tras las midterms: de <$76K a $81K (+7,2% mín→máx), $415 M liquidados (short squeeze), ETH +6%, SOL +2%; ETF -$1.160 M en 3 días; un plan no cambia con cada titular
 - 2026-11-04 pm — Backtest vs forward test: por qué el pasado no basta (sobreajuste, fricción real, mercado no visto); Sentinel en forward test en vivo sin capital real
+- 2026-11-05 am — FOMO: perseguir la vela verde (entrar tarde tras un salto por miedo a quedarse fuera) y 4 formas de frenarlo (plan, stop antes de entrar, esperar retroceso, perderse una subida no cuesta dinero)
