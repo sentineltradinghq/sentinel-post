@@ -21,3 +21,4 @@
 - 2026-11-04 especial ~5:05 p. m. — BTC se da la vuelta tras las midterms: de <$76K a $81K (+7,2% mín→máx), $415 M liquidados (short squeeze), ETH +6%, SOL +2%; ETF -$1.160 M en 3 días; un plan no cambia con cada titular
 - 2026-11-04 pm — Backtest vs forward test: por qué el pasado no basta (sobreajuste, fricción real, mercado no visto); Sentinel en forward test en vivo sin capital real
 - 2026-11-05 am — FOMO: perseguir la vela verde (entrar tarde tras un salto por miedo a quedarse fuera) y 4 formas de frenarlo (plan, stop antes de entrar, esperar retroceso, perderse una subida no cuesta dinero)
+- 2026-11-05 especial ~11:20 a. m. — Wall Street se hunde (Nasdaq 100 −5,5%) y arrastra a BTC a $76K (−5,2%), ETH −6,7%, SOL −5%; ~$600 M en largos liquidados en 1 h; qué hace un sistema en una caída rápida
