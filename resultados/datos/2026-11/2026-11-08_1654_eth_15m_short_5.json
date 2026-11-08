@@ -1,0 +1,15 @@
+{
+ "bot": "ETH 15m Short",
+ "producto": "Sentinel Vertex",
+ "moneda": "ETH",
+ "par": "ETH/USDT:USDT",
+ "lado": "short",
+ "timeframe": "15m",
+ "apalancamiento": 2.0,
+ "resultado_pct": 18.373,
+ "entrada": 2382.04,
+ "salida": 2163.62,
+ "abierta": "2026-11-04T14:45:12.003529+00:00",
+ "cerrada": "2026-11-08T21:54:42.153000+00:00",
+ "imagen": "resultados/imagenes/2026-11/2026-11-08_1654_eth_15m_short_5.jpg"
+}
