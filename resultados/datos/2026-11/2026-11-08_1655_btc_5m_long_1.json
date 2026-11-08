@@ -1,0 +1,15 @@
+{
+ "bot": "BTC 5m Long",
+ "producto": "Sentinel Apex",
+ "moneda": "BTC",
+ "par": "BTC/USDT:USDT",
+ "lado": "long",
+ "timeframe": "5m",
+ "apalancamiento": 3.0,
+ "resultado_pct": -18.003,
+ "entrada": 78935.0,
+ "salida": 74437.0,
+ "abierta": "2026-10-29T20:40:07.719702+00:00",
+ "cerrada": "2026-11-08T21:55:16.962000+00:00",
+ "imagen": "resultados/imagenes/2026-11/2026-11-08_1655_btc_5m_long_1.jpg"
+}
