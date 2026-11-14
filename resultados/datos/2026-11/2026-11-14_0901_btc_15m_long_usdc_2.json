@@ -1,0 +1,15 @@
+{
+ "bot": "BTC 15m Long USDC",
+ "producto": "Sentinel Apex",
+ "moneda": "BTC",
+ "par": "BTC/USDC:USDC",
+ "lado": "long",
+ "timeframe": "15m",
+ "apalancamiento": 2.0,
+ "resultado_pct": -24.868,
+ "entrada": 75447.4,
+ "salida": 66224.3,
+ "abierta": "2026-11-06T14:00:12.652823+00:00",
+ "cerrada": "2026-11-14T14:01:52.618000+00:00",
+ "imagen": "resultados/imagenes/2026-11/2026-11-14_0901_btc_15m_long_usdc_2.jpg"
+}
