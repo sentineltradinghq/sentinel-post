@@ -1,0 +1,15 @@
+{
+ "bot": "SOL 15m Short",
+ "producto": "Sentinel Solstice",
+ "moneda": "SOL",
+ "par": "SOL/USDT:USDT",
+ "lado": "short",
+ "timeframe": "15m",
+ "apalancamiento": 2.0,
+ "resultado_pct": 13.557,
+ "entrada": 72.88,
+ "salida": 67.86,
+ "abierta": "2026-11-17T04:15:03.211779+00:00",
+ "cerrada": "2026-11-20T16:03:06.982000+00:00",
+ "imagen": "resultados/imagenes/2026-11/2026-11-20_1103_sol_15m_short_12.jpg"
+}
