@@ -9,3 +9,4 @@ Formato: AAAA-MM-DD HH:MM | titular corto | fuente
 - 2026-11-05 17:05 | ACTUALIZACIÓN: Nasdaq cierra -5,5% (corrección) y S&P -4,4%; >$1.000M liquidados, BTC $75,8K, ETH -8% | Reuters/WSJ/The Block
 - 2026-11-08 17:05 | BTC -2,9% en 15 min a $73,5K (nuevo mínimo semanal) sin catalizador claro; ETH -4,6%, SOL -3,4% | TradingView/Glassnode-Bloomingbit
 - 2026-11-23 ~09:00 | Nvidia vuelve a nombrar a Jensen Huang CEO (acción +31 %); BTC 61K→64,6K y lo devuelve, SOL +8,7 % (78,48) y lo devuelve, ~$370–500M liquidados | CNBC/Cointelegraph/Bitcoinist
+- 2026-11-24 19:40 | BTC pierde $60K: ETF BTC récord de salidas en noviembre (≈−$4.710 M), aranceles nuevos de EE. UU., Nvidia −5,9 % tras +31 %; BTC mín. ~59.260, ETH ~1.670, SOL mín. 68,57; F&G 11 | Motley Fool/Ted Pillows/KuCoin/Dow Jones
