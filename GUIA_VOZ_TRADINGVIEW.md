@@ -28,6 +28,22 @@ como si las escribiera YaiYai (Yasmani García, cuenta YaiGarciaCrypto). Siguen 
 
 Si YaiYai comparte textos escritos por él, añadir aquí lo que se aprenda de su forma de escribir.
 
+## Pensamientos (Minds) — desde el 2026-11-27
+Cada idea de TradingView (la diaria, las extra de noticias y las especiales) va acompañada de UN pensamiento (sección "Pensamientos" / Minds) para aumentar interacciones. Lo pidió YaiYai.
+- Mismo símbolo que la idea (p. ej. BINANCE:BTCUSDT). En inglés, con la misma voz (empieza con "Ok, so..." o similar, frases cortas, sin rayas largas).
+- Corto: 40–90 palabras, 2–3 párrafos mini. Sin título, sin gráfico.
+- No repite la idea: da UN dato o nivel clave del momento (lo más llamativo), dice qué está vigilando y termina SIEMPRE con una pregunta fácil de contestar (sí/no, un número, una dirección) para provocar comentarios.
+- Puede decir "I posted my full 4H breakdown on this" pero sin enlaces.
+- Para ideas educativas/especiales: una frase provocadora o un dato sorprendente del tema + pregunta de opinión ("Have you ever...?", "What's your max drawdown?").
+- Momento sugerido: 1–2 horas después de publicar la idea (segundo empujón de visibilidad). Si el precio se movió más de 1 % desde que se escribió, actualizar la cifra antes de publicarlo.
+- Mismas reglas: sin enlaces externos, sin Discord/Whop, sin promesas, sin nombrar Sentinel Apex/Vertex/Solstice. No hace falta el disclaimer largo.
+- Se entrega en un bloque aparte, listo para pegar, debajo del bloque de la idea.
+
+Ejemplo (BTC, 2026-11-27):
+Ok, so the Thanksgiving bounce is gone. BTC went from 62,100 to 58,700 in about 30 minutes this morning, on options expiry day, with around 470M liquidated. Now it's sitting near 59,700, right under 60K.
+For me the key zone this weekend is 57,000 to 57,300. That's where a lot of long liquidations are sitting. Above, I want to see a 4H close back over 60K before I take any bounce seriously.
+Thin weekend liquidity, so I'm not forcing anything. Who's watching the weekly close on Sunday?
+
 ## Texto modelo completo (ETH, 2026-11-26)
 Ok, quick update on the ETH idea I posted on Nov 22. After the flush to 1,538 on Nov 21, ETH bounced right into the old 1,750 support, and since then it just can't get back above it. On Nov 23 it spiked to 1,845 and sold everything off. On Nov 25, with the PCE data, it dropped to 1,609 and buyers brought it back. Now it's stuck between 1,665 and 1,730, right under 1,750.
 
