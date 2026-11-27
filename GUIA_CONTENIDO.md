@@ -10,6 +10,7 @@ Esta guía la sigue Claude en cada tarea programada de publicación.
 
 ## Horarios
 - Desde el 2026-11-05 hay UN SOLO post al día: 7:00 p. m. (se prepara a las 5:18 p. m.). Ya no se publica el de la mañana.
+- Desde el 2026-12-01 se publica INTERDIARIO (días impares del mes: 1, 3, 5…; 31 y 1 quedan seguidos) porque el plan gratuito de Metricool da pocas publicaciones. Cada post cubre los dos días desde el anterior. Si el domingo cae en día sin post, el resumen semanal de los bots va en el siguiente post.
 - El post de las 7:00 p. m. es completo y mezcla, según lo más importante del día:
   protagonista (la noticia o novedad más importante) + resumen del día (BTC/ETH/SOL, miedo y codicia, noticias)
   + novedades de Sentinel si las hay + SIEMPRE un tip educativo corto + SIEMPRE invitación a la comunidad gratis.
