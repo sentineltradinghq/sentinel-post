@@ -38,6 +38,7 @@ Cada idea de TradingView (la diaria, las extra de noticias y las especiales) va 
 - Momento sugerido: 1–2 horas después de publicar la idea (segundo empujón de visibilidad). Si el precio se movió más de 1 % desde que se escribió, actualizar la cifra antes de publicarlo.
 - Mismas reglas: sin enlaces externos, sin Discord/Whop, sin promesas, sin nombrar Sentinel Apex/Vertex/Solstice. No hace falta el disclaimer largo.
 - Se entrega en un bloque aparte, listo para pegar, debajo del bloque de la idea.
+- TradingView pone sola la etiqueta del símbolo al inicio (p. ej. $SOLUSDT): se DEJA, es lo que liga el pensamiento al símbolo (no es un enlace externo).
 
 Ejemplo (BTC, 2026-11-27):
 Ok, so the Thanksgiving bounce is gone. BTC went from 62,100 to 58,700 in about 30 minutes this morning, on options expiry day, with around 470M liquidated. Now it's sitting near 59,700, right under 60K.
