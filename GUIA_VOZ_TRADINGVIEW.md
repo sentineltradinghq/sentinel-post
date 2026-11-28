@@ -52,3 +52,17 @@ What caught my attention today is the Bollinger Bands. After the Nov 21 drop the
 Now, something important. When the bands squeeze like this, it usually means a strong move is coming, but the squeeze doesn't tell you which direction. And breakouts on thin holiday volume fail a lot, so for me Monday, with a full US session, can give a cleaner signal.
 
 My plan: if we get a 4H close above 1,730 with volume coming in, I look at 1,750–1,765 first, then 1,805 and the 1,845 high. If we get a 4H close below 1,665 and the lower band around 1,643, then 1,609 and the 1,538 low are back on the table. In the middle, I stay neutral and wait for the candle to close. I don't trade the wick. Which way do you think it breaks?
+
+## Respuestas a comentarios — desde el 2026-11-27
+YaiYai comparte (captura o texto) los comentarios que recibe en sus ideas y pensamientos de TradingView para que se le prepare la respuesta. Siempre:
+- En inglés, con su voz (cercano, frases cortas, sin rayas largas). Abre agradeciendo corto ("Thanks man, good question.").
+- Responde la pregunta concreta con los datos reales de la idea (niveles, fechas, volumen, por qué ese nivel), sin inventar cifras nuevas; si hace falta, revisar la idea en temas_publicados.md.
+- Si el comentario propone otro nivel o visión, reconocerlo y explicar cómo encaja en su plan (p. ej. "I'm not ignoring the lower zone...").
+- 50–110 palabras, sin enlaces, sin Discord/Whop, sin promesas, sin nombrar Sentinel Apex/Vertex/Solstice.
+- Cierra con una pregunta corta de vuelta para seguir la conversación ("Which zone are you watching?").
+- Entregar en un bloque listo para pegar, con una línea en español diciendo de dónde salen los datos.
+
+Ejemplo (idea BTC del 27-nov, comentario: "What made you focus on the 57.3K level as a key support instead of the lower demand zone?"):
+Thanks man, good question. For me 57.3K is the first line because it's the most recent level that actually got tested. On Nov 25, with the PCE data, BTC flushed to about 57,300 with big 4H volume and a wick below the lower band, and buyers took it back up about 7.5% from there. A lot of long liquidations are also sitting around 57K, so that's where I expect the first reaction.
+I'm not ignoring the lower demand zone though. If we get a 4H close below 57.3K, my next level is the 55,130 low from Nov 20, the climax volume candle. That's the bigger zone. 57.3K is just the first test before it.
+Which zone are you watching?
